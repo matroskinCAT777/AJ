@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажер: Категорія 3 (27 питань - Макроекономіка v2)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b1120;
+      color: #f8fafc;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .layout {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      max-width: 1100px;
+      width: 100%;
+      align-items: flex-start;
+    }
+    .sidebar {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      width: 260px;
+      flex-shrink: 0;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .grid::-webkit-scrollbar {
+      width: 5px;
+    }
+    .grid::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .nav-btn {
+      background: #334155;
+      color: #cbd5e1;
+      border: 2px solid transparent;
+      padding: 8px 0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: #475569; }
+    .nav-btn.active { border-color: #38bdf8 !important; transform: scale(1.05); }
+    .nav-btn.correct { background: #166534 !important; color: #ffffff !important; }
+    .nav-btn.wrong { background: #991b1b !important; color: #ffffff !important; }
+
+    .sidebar-stats {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #334155;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-row { display: flex; justify-content: space-between; }
+    .stat-val-green { color: #4ade80; font-weight: 600; }
+    .stat-val-red { color: #f87171; font-weight: 600; }
+    .stat-val-blue { color: #38bdf8; font-weight: 600; }
+
+    .reset-btn {
+      width: 100%;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.2s;
+    }
+    .reset-btn:hover { background: #b91c1c; }
+
+    .main-card {
+      background: #1e293b;
+      border-radius: 14px;
+      flex-grow: 1;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #3b82f6;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .question-box {
+      font-size: 17px;
+      font-weight: 500;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+      background: #0f172a;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .marker {
+      background: transparent;
+      color: inherit;
+      transition: all 0.3s;
+    }
+    .show-markers .marker {
+      background: #facc15 !important;
+      color: #0f172a !important;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .btn {
+      background: #334155;
+      border: 2px solid transparent;
+      color: #f8fafc;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover:not(:disabled) { background: #475569; }
+    .btn.correct {
+      background: #166534 !important;
+      border-color: #22c55e !important;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .btn.wrong {
+      background: #991b1b !important;
+      border-color: #ef4444 !important;
+      color: #ffffff;
+    }
+    .review-box {
+      display: none;
+      background: #091224;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 15px;
+      font-size: 14.5px;
+      line-height: 1.5;
+    }
+    .review-box.correct-border { border-left-color: #22c55e; }
+    .review-box.wrong-border { border-left-color: #ef4444; }
+    .review-item { margin-bottom: 8px; }
+    .review-item strong { color: #38bdf8; }
+
+    .control-panel {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .nav-arrow-btn {
+      flex: 1;
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nav-arrow-btn:hover:not(:disabled) { background: #475569; }
+    .nav-arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .hint-btn {
+      background: #854d0e;
+      color: #fef08a;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hint-btn:hover { background: #a16207; }
+
+    @media (max-width: 820px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; }
+      .grid { grid-template-columns: repeat(7, 1fr); max-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">Питання (1 - 27)</div>
+    <div class="grid" id="nav-grid"></div>
+    
+    <div class="sidebar-stats">
+      <div class="stat-row"><span>Правильно:</span> <span class="stat-val-green" id="stat-correct">0</span></div>
+      <div class="stat-row"><span>Помилок:</span> <span class="stat-val-red" id="stat-wrong">0</span></div>
+      <div class="stat-row"><span>Залишилось:</span> <span class="stat-val-blue" id="stat-left">27</span></div>
+    </div>
+    
+    <button class="reset-btn" onclick="confirmReset()">Скинути весь прогрес</button>
+  </div>
+
+  <div class="main-card" id="app">
+    <div class="header">
+      <span id="q-counter">Питання 1 / 27</span>
+      <span id="score-counter">Правильно: 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    
+    <div class="question-box" id="q-box"></div>
+    <div class="options" id="opt-container"></div>
+    
+    <div class="review-box" id="review-box">
+      <div class="review-item"><strong>Переклад:</strong> <span id="trans-text"></span></div>
+      <div class="review-item"><strong>Ключовий маркер:</strong> <span id="clue-text"></span></div>
+      <div class="review-item"><strong>Пояснення:</strong> <span id="expl-text"></span></div>
+    </div>
+    
+    <div class="control-panel">
+      <button class="nav-arrow-btn" id="prev-btn" onclick="prevQuestion()"><- Назад</button>
+      <button class="hint-btn" id="hint-btn" onclick="toggleHint()">Підказка</button>
+      <button class="nav-arrow-btn" id="next-btn" onclick="nextQuestion()">Наступне -></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const rawQuestions = [
+  {
+    q: "_____ emphasises growth that <span class='marker'>meets present needs without compromising the ability of future generations to meet theirs</span>. It integrates environmental protection, social equity, and economic efficiency. Policymakers, businesses, and communities must adopt strategies that encourage <span class='marker'>green technologies</span>, responsible resource management, and inclusive growth. Understanding that fact enables long-term planning, risk mitigation, and the creation of resilient, competitive, and socially responsible economies. It is central to addressing global challenges like climate change, inequality, and resource scarcity.",
+    trans: "Сталий економічний розвиток наголошує на зростанні, яке задовольняє потреби сьогодення без шкоди для майбутніх поколінь. Він поєднує захист довкілля, соціальну справедливість та економічну ефективність.",
+    clue: "meets present needs without compromising future generations, green technologies, climate change",
+    expl: "Sustainable economic development (сталий розвиток) базується на збереженні екології та ресурсів для майбутніх поколінь.",
+    options: [
+      "Innovation and growth strategy",
+      "Labour market regulation",
+      "Structural adjustment programme",
+      "Industrial policy strategy",
+      "Sustainable economic development"
+    ],
+    correct: "Sustainable economic development"
+  },
+  {
+    q: "To ensure <span class='marker'>fair wages, employment rights</span>, and workforce efficiency, governments establish ___. These regulations cover <span class='marker'>minimum wage laws, working hours</span>, occupational safety, and anti-discrimination measures. Businesses, <span class='marker'>trade unions</span>, and policymakers must understand regulations to comply, negotiate effectively, and optimise productivity. It balances the interests of employees, employers, and the economy, influencing employment levels, job quality, and overall economic performance.",
+    trans: "Щоб забезпечити справедливу оплату праці, трудові права та ефективність персоналу, уряди запроваджують регулювання ринку праці. Ці правила охоплюють закони про мінімальну заробітну плату, робочий час, безпеку праці тощо.",
+    clue: "fair wages, employment rights, minimum wage laws, working hours, trade unions",
+    expl: "Labour market regulation (регулювання ринку праці) стосується законодавства про працю, мінімальних ставок, робочих годин та профспілок.",
+    options: [
+      "Income redistribution measures",
+      "Labour market regulation",
+      "Welfare state provisions",
+      "Subsidy allocation policy",
+      "Fiscal policy measures",
+      "Industrial policy strategy"
+    ],
+    correct: "Labour market regulation"
+  },
+  {
+    q: "The ___ establishes <span class='marker'>rules, supervision mechanisms</span>, and compliance standards for <span class='marker'>financial institutions</span>. It ensures stability, <span class='marker'>protects depositors</span>, and mitigates systemic risks. Effective regulation fosters <span class='marker'>trust in the banking system</span>, guides monetary policy implementation, and supports economic growth. Investors, and regulators must navigate this framework to manage risk, comply with laws, and maintain operational efficiency. Understanding that fact is critical for financial stability, policy formulation, and the resilience of the wider economy.",
+    trans: "Нормативно-правова база банківського регулювання встановлює правила, механізми нагляду та стандарти комплаєнсу для фінансових установ. Вона забезпечує стабільність, захищає вкладників і знижує системні ризики.",
+    clue: "rules, supervision mechanisms, financial institutions, banking system",
+    expl: "Banking regulation framework (банківське регулювання) визначає стандарти нагляду за банками задля безпеки вкладників та стійкості банківської сфери.",
+    options: [
+      "Credit rating agency",
+      "Financial risk assessment",
+      "Liquidity ratio",
+      "Capital markets",
+      "Banking regulation framework",
+      "Debt-to-equity ratio"
+    ],
+    correct: "Banking regulation framework"
+  },
+  {
+    q: "<span class='marker'>International financial institutions</span> often implement a ___ to stabilise economies facing <span class='marker'>debt crises</span> or macroeconomic imbalances. These programmes typically include <span class='marker'>fiscal austerity</span>, monetary reforms, and trade liberalisation measures. While designed to restore economic stability, such programmes can have social and political implications. Policymakers, economists, and businesses must analyse impacts carefully to balance short-term adjustment with long-term development goals. Understanding it is essential for managing debt sustainability, investment strategies, and policy implementation in developing economies.",
+    trans: "Міжнародні фінансові організації часто реалізують програми структурної перебудови для стабілізації економік, які зіткнулися з борговими кризами або дисбалансами. Вони включають фіскальну жорсткість та торговельну лібералізацію.",
+    clue: "International financial institutions, debt crises, fiscal austerity",
+    expl: "Structural adjustment programme (програма структурної перебудови МВФ/Світового банку) вимагає режиму жорсткої економії та структурних ринкових реформ.",
+    options: [
+      "Innovation and growth strategy",
+      "Subsidy allocation policy",
+      "Structural adjustment programme",
+      "Fiscal policy measures",
+      "Economic stabilisation policy",
+      "Labour market regulation"
+    ],
+    correct: "Structural adjustment programme"
+  },
+  {
+    q: "A ___ sets the framework for <span class='marker'>sector-specific development</span>, innovation, and competitiveness. It includes measures to <span class='marker'>support manufacturing</span>, technology, and strategic industries through investment, research support, and regulation. Policymakers, economists, and business leaders analyse those strategies to guide resource allocation, stimulate growth, and achieve sustainable economic objectives. Understanding that fact helps in evaluating national priorities, international competitiveness, and the long-term impact on employment, productivity, and economic resilience.",
+    trans: "Стратегія промислової політики задає основу для секторального розвитку, інновацій та конкурентоспроможності. Вона містить заходи з підтримки промисловості, технологій та стратегічних секторів виробництва.",
+    clue: "sector-specific development, support manufacturing, strategic industries",
+    expl: "Industrial policy strategy (промислова політика) спрямована безпосередньо на розвиток і підтримку національного виробництва (manufacturing).",
+    options: [
+      "Labour market regulation",
+      "Fiscal policy measures",
+      "Industrial policy strategy",
+      "Subsidy allocation policy",
+      "Innovation and growth strategy",
+      "Economic stabilisation policy"
+    ],
+    correct: "Industrial policy strategy"
+  },
+  {
+    q: "To encourage specific sectors or behaviours, governments implement a ______ providing financial support such as <span class='marker'>grants, tax credits, or direct payments</span>. They can stimulate innovation, employment, and investment in priority areas like renewable energy, technology, or agriculture. Analysts and policymakers assess the effectiveness, efficiency, and unintended <span class='marker'>consequences of subsidies</span>. Businesses must understand eligibility criteria and regulatory requirements to leverage incentives effectively. Well-designed policies enhance competitiveness, economic growth, and social welfare.",
+    trans: "Щоб стимулювати окремі сектори або поведінку, уряди впроваджують політику розподілу субсидій, надаючи фінансову підтримку через гранти, податкові кредити чи прямі виплати.",
+    clue: "grants, tax credits, direct payments, consequences of subsidies",
+    expl: "Subsidy allocation policy (політика виділення субсидій) прямо названа в тексті через згадку grants, direct payments та consequences of subsidies.",
+    options: [
+      "Economic stabilisation policy",
+      "Fiscal policy measures",
+      "Taxation policy instruments",
+      "Welfare state provisions",
+      "Subsidy allocation policy",
+      "Income redistribution measures"
+    ],
+    correct: "Subsidy allocation policy"
+  },
+  {
+    q: "The <span class='marker'>opposite of a trade deficit</span>, a ______ occurs when a country <span class='marker'>exports more than it imports</span>. This situation can strengthen the domestic currency, increase foreign reserves, and signal a competitive economy. Governments and businesses analyse them to make policy decisions, investment choices, and production strategies. Understanding the causes and consequences of trade surpluses is crucial for maintaining balanced growth, international competitiveness, and economic resilience in a globally interconnected marketplace.",
+    trans: "Протилежністю торговельного дефіциту є додатне сальдо торгівлі (торговельний профіцит), який виникає, коли країна експортує більше, ніж імпортує.",
+    clue: "opposite of a trade deficit, exports more than it imports",
+    expl: "Trade surplus (профіцит торговельного балансу) виникає, коли експорт перевищує імпорт.",
+    options: [
+      "Balance of payments",
+      "Trade deficit",
+      "Exchange rate fluctuation",
+      "Fiscal policy measures",
+      "Gross Domestic Product (GDP)",
+      "Trade surplus"
+    ],
+    correct: "Trade surplus"
+  },
+  {
+    q: "The ______ explains how countries benefit by <span class='marker'>specialising</span> in the production of goods or services for which they have the <span class='marker'>lowest opportunity cost</span>. It underpins international trade theory, guiding resource allocation, trade policy, and economic strategy. Understanding that fact helps policymakers, economists, and businesses identify competitive strengths, negotiate trade agreements, and optimise production and exports. Applying this principle effectively can enhance national income, efficiency, and global economic integration.",
+    trans: "Принцип порівняльних переваг пояснює, як країни отримують вигоду від спеціалізації на товарах або послугах, де вони мають найнижчі альтернативні витрати (opportunity cost).",
+    clue: "specialising, lowest opportunity cost, international trade theory",
+    expl: "Comparative advantage principle (принцип порівняльних переваг Давида Рікардо) ґрунтується саме на концепції найнижчих альтернативних витрат (lowest opportunity cost).",
+    options: [
+      "Foreign direct investment (FDI)",
+      "Exchange rate fluctuation",
+      "Supply and demand curve",
+      "Trade surplus",
+      "Trade deficit",
+      "Comparative advantage principle"
+    ],
+    correct: "Comparative advantage principle"
+  },
+  {
+    q: "The ______ <span class='marker'>records all financial transactions between a country and the rest of the world</span> over a specific period, including trade in goods and services, capital flows, and foreign exchange reserves. Analysts and policymakers use this information to assess economic stability, exchange rate pressures, and competitiveness. Imbalances may necessitate policy adjustments, trade negotiations, or capital interventions. Understanding <span class='marker'>those payments</span> is essential for international investors, central banks, and government agencies to make informed decisions in the global economic context.",
+    trans: "Платіжний баланс фіксує всі фінансові транзакції між країною та рештою світу за певний період, включаючи торгівлю товарами, послугами, потоки капіталу та валютні резерви.",
+    clue: "records all financial transactions between a country and the rest of the world, those payments",
+    expl: "Balance of payments (платіжний баланс) фіксує весь сукупний обіг грошей та платежів країни у зовнішньоекономічних зв'язках.",
+    options: [
+      "GDP",
+      "Interest rate policy",
+      "Fiscal policy measures",
+      "Exchange rate fluctuation",
+      "Trade deficit",
+      "Balance of payments"
+    ],
+    correct: "Balance of payments"
+  },
+  {
+    q: "Governments utilise ______ to raise revenue, influence behaviour, and promote economic objectives. These <span class='marker'>instruments include income taxes, corporate taxes, VAT, excise duties</span>, and targeted incentives. Policy design considers efficiency, equity, and administrative feasibility. Businesses, investors, and economists must understand those facts to anticipate obligations, optimise strategies, and ensure compliance. Effective use of hose tools balances fiscal needs with growth and social equity objectives, supporting long-term sustainable development.",
+    trans: "Уряди використовують інструменти податкової політики для наповнення бюджету, регулювання поведінки та економічних цілей. До цих інструментів належать прибутковий податок, корпоративні податки, ПДВ та акцизи.",
+    clue: "instruments include income taxes, corporate taxes, VAT, excise duties",
+    expl: "Taxation policy instruments (інструменти податкової політики) описуються через перелік конкретних видів податків (income taxes, VAT, excise duties).",
+    options: [
+      "Fiscal policy measures",
+      "Income redistribution measures",
+      "Capital markets",
+      "Subsidy allocation policy",
+      "Taxation policy instruments",
+      "Economic stabilisation policy"
+    ],
+    correct: "Taxation policy instruments"
+  },
+  {
+    q: "Governments implement ______ to influence economic performance through <span class='marker'>taxation, spending, and budgetary decisions</span>. These measures affect <span class='marker'>aggregate demand</span>, income distribution, and business confidence. Policymakers must balance stimulus and restraint, short-term objectives with long-term sustainability. Understanding those tools is vital for economists, investors, and businesses to anticipate policy impacts, plan strategically, and evaluate the effectiveness of interventions in maintaining economic stability and promoting growth.",
+    trans: "Уряди запроваджують заходи фіскальної політики для впливу на економіку через податки, державні витрати та бюджетні рішення. Ці заходи впливають на сукупний попит.",
+    clue: "taxation, spending, and budgetary decisions, aggregate demand",
+    expl: "Fiscal policy measures (фіскальна політика) охоплює як податки, так і прямі державні витрати (spending) для регулювання попиту.",
+    options: [
+      "GDP",
+      "Monetary policy framework",
+      "Unemployment rate",
+      "Inflation rate",
+      "Trade surplus",
+      "Fiscal policy measures"
+    ],
+    correct: "Fiscal policy measures"
+  },
+  {
+    q: "The ______ measures the <span class='marker'>annual percentage increase in the value of goods and services produced in an economy</span>. <span class='marker'>Sustained growth rates</span> indicate a healthy economy with rising incomes, employment opportunities, and investment potential. Policymakers rely on those data to guide monetary and fiscal decisions, forecast future trends, and design development strategies. Businesses and investors also use this metric to plan expansion, assess market potential, and manage risk in dynamic economic environments.",
+    trans: "Темп економічного зростання вимірює щорічне відсоткове збільшення вартості товарів і послуг, вироблених в економіці. Стабільні темпи зростання вказують на здорову економіку.",
+    clue: "annual percentage increase in the value of goods and services, growth rates",
+    expl: "Economic growth rate (темп економічного зростання) показує динаміку зростання випуску у відсотках за рік.",
+    options: [
+      "Unemployment rate",
+      "Balance of payments",
+      "Inflation rate",
+      "GDP",
+      "Trade deficit",
+      "Economic growth rate"
+    ],
+    correct: "Economic growth rate"
+  },
+  {
+    q: "It calculates the total economic output generated by a country's <span class='marker'>residents, regardless of the location of production</span>. The ______ includes <span class='marker'>income earned abroad by citizens</span> and businesses minus the income earned domestically by foreign residents. Comparing it with that provides insights into the impact of international economic activities and net factor income. Economists use it to analyse economic performance, assess the standard of living, and evaluate policies that influence domestic and international investment flows.",
+    trans: "Цей показник розраховує загальний економічний випуск, створений резидентами країни незалежно від географії виробництва. Він включає доходи громадян з-за кордону за вирахуванням доходів іноземців усередині країни.",
+    clue: "residents, regardless of location of production, income earned abroad by citizens",
+    expl: "Gross National Product (GNP / ВНП) фокусується на факторі резидентства громадян у всьому світі, тоді як ВВП (GDP) прив'язаний лише до географічної території.",
+    options: [
+      "Gross National Product (GNP)",
+      "Interest rate policy",
+      "Fiscal policy measures",
+      "GDP",
+      "Inflation rate",
+      "Trade surplus"
+    ],
+    correct: "Gross National Product (GNP)"
+  },
+  {
+    q: "A ______ occurs when a country <span class='marker'>imports more goods and services than it exports</span>, resulting in a <span class='marker'>net outflow of domestic currency</span> to foreign markets. Persistent deficits can affect exchange rates, foreign reserves, and economic growth. Policymakers monitor trade deficits to design tariffs, negotiate trade agreements, and implement export promotion policies. Understanding those fates is essential for businesses engaged in international commerce, economists assessing competitiveness, and governments managing macroeconomic stability and sustainable development.",
+    trans: "Торговельний дефіцит виникає тоді, коли країна імпортує більше товарів і послуг, ніж експортує, що спричиняє відтік національної валюти на зовнішні ринки.",
+    clue: "imports more goods and services than it exports, net outflow of domestic currency",
+    expl: "Trade deficit (дефіцит торговельного балансу) виникає за переважання імпорту над експортом.",
+    options: [
+      "Interest rate policy",
+      "Balance of payments",
+      "Trade deficit",
+      "Exchange rate fluctuation",
+      "Trade surplus",
+      "GDP"
+    ],
+    correct: "Trade deficit"
+  },
+  {
+    q: "The ______ tracks the average change over time in the <span class='marker'>prices paid by urban consumers</span> for a <span class='marker'>representative basket of goods and services</span>. It is a key indicator of inflation, cost of living, and purchasing power. Economists, central banks, and policymakers rely on it to adjust wages, pensions, and monetary policies. Businesses use it for pricing, forecasting, and contract adjustments. Understanding those trends helps households, companies, and governments make informed decisions in an economy affected by inflationary pressures.",
+    trans: "Індекс споживчих цін відстежує середню динаміку цін, які сплачують міські споживачі за репрезентативний споживчий кошик товарів і послуг. Це ключовий показник вартості життя.",
+    clue: "prices paid by urban consumers, basket of goods and services",
+    expl: "Consumer price index (CPI / ІСЦ) вимірює ціни на рівні кінцевого споживача за кошиком товарів.",
+    options: [
+      "Consumer price index (CPI)",
+      "Unemployment rate",
+      "Producer price index (PPI)",
+      "Exchange rate fluctuation",
+      "Inflation rate",
+      "GDP"
+    ],
+    correct: "Consumer price index (CPI)"
+  },
+  {
+    q: "______ occurs when a company or individual <span class='marker'>invests in business operations or assets in another country</span>, gaining a degree of <span class='marker'>control over management</span>. It drives economic growth, technology transfer, and employment generation in host countries. Governments encourage that fact through incentives, regulatory frameworks, and infrastructure development. Understanding that fact is crucial for multinational corporations, policymakers, and economists assessing the impact of global capital flows on domestic markets, competitiveness, and long-term development strategies.",
+    trans: "Прямі іноземні інвестиції відбуваються, коли компанія чи індивід інвестує в бізнес або активи в іншій країні, отримуючи контроль над управлінням.",
+    clue: "invests in operations in another country, control over management",
+    expl: "Foreign direct investment (FDI / ПІІ) передбачає інвестування за кордон з отриманням частки контролю над менеджментом.",
+    options: [
+      "Capital markets",
+      "Gross National Product (GNP)",
+      "Trade deficit",
+      "International trade agreements",
+      "Foreign direct investment (FDI)",
+      "Exchange rate fluctuation"
+    ],
+    correct: "Foreign direct investment (FDI)"
+  },
+  {
+    q: "A ______ encompasses <span class='marker'>social programmes</span> designed to provide <span class='marker'>healthcare, education, pensions</span>, and unemployment support. These provisions aim to ensure <span class='marker'>minimum living standards</span>, reduce poverty, and enhance social stability. Economists and policymakers analyse their cost, effectiveness, and long-term sustainability. Businesses also consider the implications of welfare provisions for labour markets, productivity, and consumer demand. Understanding those policies is essential for informed decision-making and strategic planning in both public and private sectors.",
+    trans: "Заходи соціальної держави охоплюють соціальні програми для надання медичної допомоги, освіти, пенсій та підтримки безробітних, спрямовані на забезпечення мінімальних стандартів життя.",
+    clue: "social programmes, healthcare, education, pensions, minimum living standards",
+    expl: "Welfare state provisions (забезпечення держави загального добробуту) спрямовані на гарантування базових життєвих умов усім громадянам.",
+    options: [
+      "Welfare state provisions",
+      "Fiscal policy measures",
+      "Innovation and growth strategy",
+      "Labour market regulation",
+      "Taxation policy instruments",
+      "Subsidy allocation policy"
+    ],
+    correct: "Welfare state provisions"
+  },
+  {
+    q: "A ______ measures a company's ability to <span class='marker'>meet short-term obligations using current assets</span>. It is a critical indicator of financial health, cash flow management, and operational stability. Investors, creditors, and regulators analyse <span class='marker'>liquidity ratios</span> to assess solvency and potential risks. Companies must maintain adequate that fact to withstand unexpected expenses, ensure smooth operations, and satisfy stakeholders. Understanding them helps in financial planning, investment evaluation, and strategic decision-making in both domestic and international markets.",
+    trans: "Коефіцієнт ліквідності вимірює здатність компанії виконувати короткострокові зобов'язання за допомогою поточних (оборотних) активів.",
+    clue: "meet short-term obligations using current assets, liquidity ratios",
+    expl: "Liquidity ratio (коефіцієнт ліквідності) є ключовим показником спроможності погашати поточні борги без затримок.",
+    options: [
+      "Financial risk assessment",
+      "Capital markets",
+      "Liquidity ratio",
+      "Debt-to-equity ratio",
+      "Public debt level",
+      "Stock market index"
+    ],
+    correct: "Liquidity ratio"
+  },
+  {
+    q: "An effective ______ identifies key drivers of <span class='marker'>technological advancement</span>, entrepreneurship, and productivity. It integrates <span class='marker'>research and development</span>, investment incentives, and education policies to foster sustainable economic expansion. Governments, businesses, and research institutions must coordinate efforts to implement these strategies successfully. Understanding those facts allows economists and policymakers to enhance competitiveness, stimulate job creation, and maintain long-term economic resilience in a rapidly evolving global landscape.",
+    trans: "Ефективна стратегія інновацій та зростання визначає ключові фактори технологічного розвитку, підприємництва та продуктивності, інтегруючи наукові дослідження (НДДКР) та освіту.",
+    clue: "technological advancement, research and development (R&D)",
+    expl: "Innovation and growth strategy (стратегія інновацій та зростання) базується на технологічному прогресі та наукових розробках (R&D).",
+    options: [
+      "Taxation policy instruments",
+      "Industrial policy strategy",
+      "Economic stabilisation policy",
+      "Subsidy allocation policy",
+      "Fiscal policy measures",
+      "Innovation and growth strategy"
+    ],
+    correct: "Innovation and growth strategy"
+  },
+  {
+    q: "Central banks use the ______ to regulate economic activity by <span class='marker'>adjusting the cost of borrowing</span>. Changes in <span class='marker'>interest rates</span> influence investment, consumption, savings, and inflation. Businesses and households must anticipate rate adjustments for strategic planning, loan management, and financial decision-making. Those policies balance growth, employment, and price stability, and require careful monitoring of domestic and international financial conditions to prevent imbalances and maintain confidence in the monetary system.",
+    trans: "Центральні банки використовують політику процентних ставок для регулювання економіки через зміну вартості запозичень. Зміни ставок впливають на інвестиції, споживання та інфляцію.",
+    clue: "Central banks, adjusting the cost of borrowing, interest rates",
+    expl: "Interest rate policy (політика облікових ставок) регулює вартість грошей та кредитування в економіці.",
+    options: [
+      "GDP",
+      "Fiscal policy measures",
+      "Balance of payments",
+      "Interest rate policy",
+      "Exchange rate fluctuation",
+      "Inflation rate"
+    ],
+    correct: "Interest rate policy"
+  },
+  {
+    q: "Economic analysts monitor price movements to anticipate shifts in consumer behaviour and investment. A persistent ______ indicates a <span class='marker'>decline in general price levels</span>, which can lead to reduced business revenues, lower wages, and slower economic growth. Policymakers may respond with fiscal or monetary interventions to stimulate demand. Understanding that fact is crucial for central banks, financial analysts, and corporations to manage risks, adjust pricing strategies, and maintain stability in both domestic and global markets.",
+    trans: "Аналітики відстежують динаміку цін. Тривалий дефляційний тренд свідчить про зниження загального рівня цін, що може спричинити падіння доходів бізнесу та сповільнення росту.",
+    clue: "decline in general price levels, deflation",
+    expl: "Deflation trend (дефляційний тренд) означає тривале зниження середніх цін на ринку.",
+    options: [
+      "Deflation trend",
+      "GDP",
+      "Inflation rate",
+      "Unemployment rate",
+      "Fiscal policy measures",
+      "Interest rate"
+    ],
+    correct: "Deflation trend"
+  },
+  {
+    q: "Governments often provide ______ to <span class='marker'>stimulate private sector participation</span> in economic growth. These <span class='marker'>incentives include tax breaks</span>, grants, or subsidies to encourage investment in priority sectors, innovation, or infrastructure. Understanding these measures is essential for investors, businesses, and policymakers to make informed decisions, optimise returns, and promote sustainable development. Well-designed those facts can enhance competitiveness, create jobs, and strengthen long-term economic resilience.",
+    trans: "Уряди часто надають стимули для приватних інвестицій, щоб залучити приватний бізнес до зростання: податкові пільги, гранти або субсидії на інфраструктуру та інновації.",
+    clue: "stimulate private sector participation, incentives include tax breaks",
+    expl: "Private investment incentives (стимули для приватних інвестицій) залучають капітал підприємців за допомогою податкових пільг та субсидій.",
+    options: [
+      "Public debt level",
+      "Stock market index",
+      "Private investment incentives",
+      "Financial risk assessment",
+      "Bond yield",
+      "Capital markets"
+    ],
+    correct: "Private investment incentives"
+  },
+  {
+    q: "It measures the <span class='marker'>total value of all goods and services produced within a country during a specific period</span>. The ______ is a fundamental indicator of economic performance, reflecting the overall size and health of an economy. Policymakers, investors, and analysts rely on that to make decisions about fiscal and monetary policies, assess economic growth, and compare performance across countries. Fluctuations in that can signal expansions, recessions, or structural changes in the economy, and understanding this concept is critical for both macroeconomic analysis and long-term strategic planning.",
+    trans: "Цей показник вимірює загальну вартість усіх товарів і послуг, вироблених у межах кордонів країни за певний період. Це фундаментальний індикатор загального масштабу економіки.",
+    clue: "total value produced within a country during a specific period",
+    expl: "Gross Domestic Product (GDP / ВВП) фіксує сукупний обсяг виробництва всередині географічних кордонів країни.",
+    options: [
+      "Inflation rate",
+      "Exchange rate fluctuation",
+      "Gross Domestic Product (GDP)",
+      "Gross National Product (GNP)",
+      "Unemployment rate",
+      "Balance of payments"
+    ],
+    correct: "Gross Domestic Product (GDP)"
+  },
+  {
+    q: "The ______ <span class='marker'>compares a company's total liabilities to shareholders' equity</span>, indicating <span class='marker'>financial leverage</span> and risk. High ratios suggest greater reliance on debt financing, while lower ratios reflect more conservative capital structures. Investors and analysts use this measure to evaluate solvency, risk exposure, and potential returns. Corporations consider the ratio when planning expansion, securing financing, or managing capital costs. Understanding that fact is essential for sustainable growth, financial stability, and long-term strategic planning.",
+    trans: "Співвідношення боргу до власного капіталу порівнює сукупні зобов'язання компанії з капіталом акціонерів, демонструючи рівень фінансового левериджу та ризику.",
+    clue: "total liabilities to shareholders' equity, financial leverage",
+    expl: "Debt-to-equity ratio (співвідношення боргу до капіталу) показує рівень кредитної залежності бізнесу.",
+    options: [
+      "Credit rating agency",
+      "Liquidity ratio",
+      "Public debt level",
+      "Debt-to-equity ratio",
+      "Capital markets",
+      "Bond"
+    ],
+    correct: "Debt-to-equity ratio"
+  },
+  {
+    q: "The ______ measures <span class='marker'>how sensitive the quantity demanded of a good or service is to changes in its price</span>. It indicates that consumers will significantly reduce purchases when prices rise, while low elasticity suggests minimal change in demand. This concept informs pricing strategies, tax policies, and revenue forecasts. Businesses and policymakers analyse elasticity to optimise it, anticipate market reactions, and design interventions that balance profitability with consumer welfare, ensuring efficient allocation of resources in competitive markets.",
+    trans: "Цінова еластичність попиту вимірює, наскільки чутливим є обсяг попиту на товар чи послугу до змін ціни. Вона показує реакцію покупців на зростання або зниження вартості.",
+    clue: "how sensitive the quantity demanded is to changes in price",
+    expl: "Price elasticity of demand (цінова еластичність попиту) прямо вимірює реакцію попиту на зміну ціни.",
+    options: [
+      "Price elasticity of demand",
+      "Inflation rate",
+      "Gross Domestic Product (GDP)",
+      "Supply and demand curve",
+      "Fiscal policy measures",
+      "Trade surplus"
+    ],
+    correct: "Price elasticity of demand"
+  },
+  {
+    q: "The ______ measures the average change over time in <span class='marker'>selling prices received by domestic producers</span> for their output. <span class='marker'>Unlike CPI</span>, which reflects consumer prices, it <span class='marker'>focuses on the production side</span> of the economy. It helps economists, businesses, and policymakers anticipate inflationary trends, cost pressures, and profitability challenges. Monitoring that fact enables effective pricing strategies, supply chain adjustments, and economic forecasting, providing critical insights into market conditions and industrial performance.",
+    trans: "Індекс цін виробників вимірює середню динаміку цін, які отримують вітчизняні виробники за свою продукцію. На відміну від CPI, він фокусується на виробничій стороні економіки.",
+    clue: "selling prices received by domestic producers, Unlike CPI, production side",
+    expl: "Producer price index (PPI / Індекс цін виробників) вимірює оптові ціни на рівні виробників.",
+    options: [
+      "Fiscal policy measures",
+      "Gross Domestic Product (GDP)",
+      "Producer price index (PPI)",
+      "Consumer price index (CPI)",
+      "Trade deficit",
+      "Balance of payments"
+    ],
+    correct: "Producer price index (PPI)"
+  },
+  {
+    q: "The ______ measures the rate at which the <span class='marker'>general level of prices for goods and services rises over time</span>, <span class='marker'>eroding purchasing power</span>. It is a key indicator for central banks, businesses, and consumers. It can reduce real income and savings, while deflation can slow economic activity. Accurate measurement and monitoring of those guide monetary policy decisions, wage negotiations, and long-term financial planning, impacting investment strategies, interest rates, and overall economic stability.",
+    trans: "Рівень інфляції вимірює швидкість зростання загального рівня цін на товари та послуги з часом, що знецінює купівельну спроможність грошей.",
+    clue: "general level of prices rises over time, eroding purchasing power",
+    expl: "Inflation rate (рівень інфляції) показує темп зростання цін та падіння купівельної спроможності грошей.",
+    options: [
+      "Inflation rate",
+      "Consumer price index (CPI)",
+      "Deflation trend",
+      "GDP",
+      "Exchange rate fluctuation",
+      "Balance of payments"
+    ],
+    correct: "Inflation rate"
+  }
+];
+
+const STORAGE_KEY = "category3_macro_v2";
+
+function shuffleArray(arr) {
+  const newArr = [...arr];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
+let state = [];
+let currentIndex = 0;
+
+function loadInitialState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      state = JSON.parse(saved);
+      if (state.length === rawQuestions.length) return;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  state = rawQuestions.map((item, idx) => ({
+    id: idx,
+    q: item.q,
+    trans: item.trans,
+    clue: item.clue,
+    expl: item.expl,
+    options: shuffleArray(item.options),
+    correctStr: item.correct,
+    answered: false,
+    selectedStr: null,
+    isCorrect: false,
+    hintShown: false
+  }));
+  saveState();
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function initNavGrid() {
+  const container = document.getElementById("nav-grid");
+  container.innerHTML = "";
+  state.forEach((_, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn";
+    btn.id = `nav-btn-${idx}`;
+    btn.innerText = idx + 1;
+    btn.onclick = () => jumpToQuestion(idx);
+    container.appendChild(btn);
+  });
+}
+
+function updateNavGridAndStats() {
+  let correctCount = 0;
+  let wrongCount = 0;
+
+  state.forEach((s, idx) => {
+    const btn = document.getElementById(`nav-btn-${idx}`);
+    if (!btn) return;
+    btn.className = "nav-btn";
+    if (idx === currentIndex) btn.classList.add("active");
+    if (s.answered) {
+      if (s.isCorrect) {
+        btn.classList.add("correct");
+        correctCount++;
+      } else {
+        btn.classList.add("wrong");
+        wrongCount++;
+      }
+    }
+  });
+
+  const leftCount = state.length - (correctCount + wrongCount);
+  document.getElementById("stat-correct").innerText = correctCount;
+  document.getElementById("stat-wrong").innerText = wrongCount;
+  document.getElementById("stat-left").innerText = leftCount;
+  document.getElementById("score-counter").innerText = `Правильно: ${correctCount}`;
+}
+
+function loadQuestion(idx) {
+  currentIndex = idx;
+  const item = state[currentIndex];
+
+  document.getElementById("q-counter").innerText = `Питання ${currentIndex + 1} / ${state.length}`;
+  document.getElementById("progress").style.width = `${((currentIndex + 1) / state.length) * 100}%`;
+
+  const qBox = document.getElementById("q-box");
+  qBox.innerHTML = item.q;
+  if (item.answered || item.hintShown) {
+    qBox.classList.add("show-markers");
+  } else {
+    qBox.classList.remove("show-markers");
+  }
+
+  const container = document.getElementById("opt-container");
+  container.innerHTML = "";
+
+  item.options.forEach((optStr) => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.innerText = optStr;
+
+    if (item.answered) {
+      btn.disabled = true;
+      if (optStr === item.correctStr) btn.classList.add("correct");
+      if (optStr === item.selectedStr && !item.isCorrect) btn.classList.add("wrong");
+    } else {
+      btn.onclick = () => selectAnswer(optStr);
+    }
+    container.appendChild(btn);
+  });
+
+  const reviewBox = document.getElementById("review-box");
+  if (item.answered) {
+    document.getElementById("trans-text").innerText = item.trans;
+    document.getElementById("clue-text").innerText = item.clue;
+    document.getElementById("expl-text").innerText = item.expl;
+    reviewBox.className = "review-box " + (item.isCorrect ? "correct-border" : "wrong-border");
+    reviewBox.style.display = "block";
+  } else {
+    reviewBox.style.display = "none";
+  }
+
+  document.getElementById("prev-btn").disabled = (currentIndex === 0);
+  document.getElementById("next-btn").disabled = (currentIndex === state.length - 1);
+  updateNavGridAndStats();
+}
+
+function selectAnswer(optStr) {
+  const item = state[currentIndex];
+  item.answered = true;
+  item.selectedStr = optStr;
+  item.isCorrect = (optStr === item.correctStr);
+
+  saveState();
+  loadQuestion(currentIndex);
+}
+
+function toggleHint() {
+  state[currentIndex].hintShown = true;
+  saveState();
+  document.getElementById("q-box").classList.add("show-markers");
+}
+
+function prevQuestion() {
+  if (currentIndex > 0) loadQuestion(currentIndex - 1);
+}
+
+function nextQuestion() {
+  if (currentIndex < state.length - 1) loadQuestion(currentIndex + 1);
+}
+
+function jumpToQuestion(idx) {
+  loadQuestion(idx);
+}
+
+function confirmReset() {
+  if (confirm("Ви дійсно хочете скинути всі відповіді, лічильники та заново перемішати варіанти?")) {
+    localStorage.removeItem(STORAGE_KEY);
+    loadInitialState();
+    initNavGrid();
+    loadQuestion(0);
+  }
+}
+
+loadInitialState();
+initNavGrid();
+loadQuestion(0);
+</script>
+</body>
+</html>

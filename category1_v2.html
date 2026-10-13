@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажер: Категорія 1 (52 терміни - v2)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b1120;
+      color: #f8fafc;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .layout {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      max-width: 1100px;
+      width: 100%;
+      align-items: flex-start;
+    }
+    .sidebar {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      width: 260px;
+      flex-shrink: 0;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .grid::-webkit-scrollbar {
+      width: 5px;
+    }
+    .grid::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .nav-btn {
+      background: #334155;
+      color: #cbd5e1;
+      border: 2px solid transparent;
+      padding: 8px 0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: #475569; }
+    .nav-btn.active { border-color: #38bdf8 !important; transform: scale(1.05); }
+    .nav-btn.correct { background: #166534 !important; color: #ffffff !important; }
+    .nav-btn.wrong { background: #991b1b !important; color: #ffffff !important; }
+
+    .sidebar-stats {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #334155;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-row { display: flex; justify-content: space-between; }
+    .stat-val-green { color: #4ade80; font-weight: 600; }
+    .stat-val-red { color: #f87171; font-weight: 600; }
+    .stat-val-blue { color: #38bdf8; font-weight: 600; }
+
+    .reset-btn {
+      width: 100%;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.2s;
+    }
+    .reset-btn:hover { background: #b91c1c; }
+
+    .main-card {
+      background: #1e293b;
+      border-radius: 14px;
+      flex-grow: 1;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #3b82f6;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .question-box {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+      background: #0f172a;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .marker {
+      background: transparent;
+      color: inherit;
+      transition: all 0.3s;
+    }
+    .show-markers .marker {
+      background: #facc15 !important;
+      color: #0f172a !important;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .btn {
+      background: #334155;
+      border: 2px solid transparent;
+      color: #f8fafc;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover:not(:disabled) { background: #475569; }
+    .btn.correct {
+      background: #166534 !important;
+      border-color: #22c55e !important;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .btn.wrong {
+      background: #991b1b !important;
+      border-color: #ef4444 !important;
+      color: #ffffff;
+    }
+    .review-box {
+      display: none;
+      background: #091224;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 15px;
+      font-size: 14.5px;
+      line-height: 1.5;
+    }
+    .review-box.correct-border { border-left-color: #22c55e; }
+    .review-box.wrong-border { border-left-color: #ef4444; }
+    .review-item { margin-bottom: 8px; }
+    .review-item strong { color: #38bdf8; }
+
+    .control-panel {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .nav-arrow-btn {
+      flex: 1;
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nav-arrow-btn:hover:not(:disabled) { background: #475569; }
+    .nav-arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .hint-btn {
+      background: #854d0e;
+      color: #fef08a;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hint-btn:hover { background: #a16207; }
+
+    @media (max-width: 820px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; }
+      .grid { grid-template-columns: repeat(8, 1fr); max-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">Питання (1 - 52)</div>
+    <div class="grid" id="nav-grid"></div>
+    
+    <div class="sidebar-stats">
+      <div class="stat-row"><span>Правильно:</span> <span class="stat-val-green" id="stat-correct">0</span></div>
+      <div class="stat-row"><span>Помилок:</span> <span class="stat-val-red" id="stat-wrong">0</span></div>
+      <div class="stat-row"><span>Залишилось:</span> <span class="stat-val-blue" id="stat-left">52</span></div>
+    </div>
+    
+    <button class="reset-btn" onclick="confirmReset()">Скинути весь прогрес</button>
+  </div>
+
+  <div class="main-card" id="app">
+    <div class="header">
+      <span id="q-counter">Питання 1 / 52</span>
+      <span id="score-counter">Правильно: 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    
+    <div class="question-box" id="q-box"></div>
+    <div class="options" id="opt-container"></div>
+    
+    <div class="review-box" id="review-box">
+      <div class="review-item"><strong>Переклад:</strong> <span id="trans-text"></span></div>
+      <div class="review-item"><strong>Ключовий маркер:</strong> <span id="clue-text"></span></div>
+      <div class="review-item"><strong>Пояснення:</strong> <span id="expl-text"></span></div>
+    </div>
+    
+    <div class="control-panel">
+      <button class="nav-arrow-btn" id="prev-btn" onclick="prevQuestion()"><- Назад</button>
+      <button class="hint-btn" id="hint-btn" onclick="toggleHint()">Підказка</button>
+      <button class="nav-arrow-btn" id="next-btn" onclick="nextQuestion()">Наступне -></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const rawQuestions = [
+  {
+    q: "when someone is <span class='marker'>raised to a higher or more important position</span>",
+    trans: "коли когось підвищують на вищу або важливішу посаду",
+    clue: "raised to a higher position (підвищений на посаді)",
+    expl: "Promotion означає кар'єрне підвищення.",
+    options: ["objective", "promotion", "crisis", "innovation"],
+    correct: "promotion"
+  },
+  {
+    q: "the <span class='marker'>government or central bank</span> actions concerning the <span class='marker'>rate of growth of the money in circulation</span>",
+    trans: "дії уряду або центрального банку щодо темпів зростання кількості грошей в обігу",
+    clue: "central bank, money in circulation",
+    expl: "Monetary policy (монетарна політика) регулює грошову масу та відсоткові ставки.",
+    options: ["Keynesianism", "money supply", "fiscal policy", "monetary policy"],
+    correct: "monetary policy"
+  },
+  {
+    q: "<span class='marker'>setting a high price</span> for a new product, to make <span class='marker'>maximum revenue before competing products appear</span> on the market",
+    trans: "встановлення високої ціни на новий товар для отримання максимального прибутку до появи конкурентів",
+    clue: "setting a high price before competitors appear",
+    expl: "Market skimming (зняття вершків): встановлення максимальної ціни на початку продажів.",
+    options: ["market skimming", "market penetration", "market differentiation", "market segmentation"],
+    correct: "market skimming"
+  },
+  {
+    q: "<span class='marker'>dividing a market into distanced groups</span> of buyers who have <span class='marker'>different requirements or buying habits</span>",
+    trans: "поділ ринку на окремі групи покупців з різними потребами або звичками",
+    clue: "dividing a market into groups",
+    expl: "Market segmentation (сегментація ринку): поділ покупців на однорідні групи.",
+    options: ["product differentiation", "market segmentation", "market skimming", "sales representative"],
+    correct: "market segmentation"
+  },
+  {
+    q: "a <span class='marker'>new idea or method</span>",
+    trans: "нова ідея або метод",
+    clue: "new idea or method",
+    expl: "Innovation означає інновацію або нововведення.",
+    options: ["innovation", "objective", "subordinate", "promotion"],
+    correct: "innovation"
+  },
+  {
+    q: "the section of the economy <span class='marker'>under government control</span>",
+    trans: "сектор економіки, що перебуває під контролем держави",
+    clue: "under government control",
+    expl: "Public sector: державний сектор економіки.",
+    options: ["public sector", "objective", "strategy", "promotion"],
+    correct: "public sector"
+  },
+  {
+    q: "someone who <span class='marker'>contacts existing and potential customers</span>, and tries to <span class='marker'>persuade them to buy goods or services</span>",
+    trans: "той, хто контактує з клієнтами і переконує їх купувати товари чи послуги",
+    clue: "persuade them to buy goods or services",
+    expl: "Sales representative: торговий представник або агент з продажу.",
+    options: ["wholesaler", "featurer", "sales representative", "marketer"],
+    correct: "sales representative"
+  },
+  {
+    q: "a <span class='marker'>small amount of a product</span> given to customers to <span class='marker'>encourage them to try it</span>",
+    trans: "невелика кількість продукту, яка надається клієнтам для проби",
+    clue: "small amount to try it",
+    expl: "Sample: безкоштовний зразок або пробник.",
+    options: ["budget", "sample", "brief", "media plan"],
+    correct: "sample"
+  },
+  {
+    q: "<span class='marker'>making false declarations</span> to the <span class='marker'>tax authorities</span> is called",
+    trans: "подання неправдивих декларацій податковим органам називається",
+    clue: "false declarations to tax authorities",
+    expl: "Tax evasion: незаконне кримінальне ухилення від сплати податків.",
+    options: ["tax havens", "tax avoidance", "tax evasion", "fiscal policy"],
+    correct: "tax evasion"
+  },
+  {
+    q: "<span class='marker'>wrappers and containers</span> used to <span class='marker'>enclose and protect a product</span>",
+    trans: "обгортки та контейнери для захисту продукту",
+    clue: "wrappers and containers, protect",
+    expl: "Packaging: упакування продукції.",
+    options: ["shelves", "market share", "packaging", "retailers"],
+    correct: "packaging"
+  },
+  {
+    q: "a tax <span class='marker'>collected at each stage of production</span>, <span class='marker'>excluding the already-taxed costs</span> from previous stages, is called a/an",
+    trans: "податок, що стягується на кожному етапі виробництва за вирахуванням сплаченого раніше",
+    clue: "collected at each stage of production",
+    expl: "Value-added tax (ПДВ): податок на додану вартість.",
+    options: ["flat tax", "value-added tax", "indirect tax", "direct tax"],
+    correct: "value-added tax"
+  },
+  {
+    q: "<span class='marker'>distribution according to a plan</span>",
+    trans: "розподіл відповідно до плану",
+    clue: "distribution according to a plan",
+    expl: "Allocation: цільовий плановий розподіл ресурсів чи коштів.",
+    options: ["outcome", "outset", "location", "allocation"],
+    correct: "allocation"
+  },
+  {
+    q: "a document that <span class='marker'>lists things provided or work done</span> gives their cost and <span class='marker'>asks for payment</span>",
+    trans: "документ із переліком наданих послуг або товарів, їхньою вартістю та вимогою про оплату",
+    clue: "lists things provided, asks for payment",
+    expl: "Invoice: рахунок-фактура або платіжний рахунок.",
+    options: ["tax return", "tax file", "tax approval", "invoice"],
+    correct: "invoice"
+  },
+  {
+    q: "<span class='marker'>reducing the amount of tax</span> you pay to a <span class='marker'>legal minimum</span> is called",
+    trans: "зменшення суми податків до законного мінімуму називається",
+    clue: "legal minimum (законний мінімум)",
+    expl: "Tax avoidance: законна оптимізація податкових платежів.",
+    options: ["tax havens", "creative accounting", "tax evasion", "tax avoidance"],
+    correct: "tax avoidance"
+  },
+  {
+    q: "<span class='marker'>two or more people who own something</span>",
+    trans: "двоє або більше людей, які володіють чимось",
+    clue: "two or more who own",
+    expl: "Joint owners: співвласники майна або підприємства.",
+    options: ["joint owners", "fit owners", "fix owners", "connected owners"],
+    correct: "joint owners"
+  },
+  {
+    q: "the economic theory that <span class='marker'>government monetary and fiscal policy should stimulate business activity</span> and increase employment <span class='marker'>in a recession</span>",
+    trans: "теорія, за якою держава має стимулювати попит і зайнятість під час рецесії",
+    clue: "stimulate business activity in a recession",
+    expl: "Keynesianism (кейнсіанство): теорія державних стимулів під час спадів.",
+    options: ["money supply", "monetary policy", "fiscal policy", "Keynesianism"],
+    correct: "Keynesianism"
+  },
+  {
+    q: "<span class='marker'>gifts to family members</span> over a certain value are often liable to a/an",
+    trans: "подарунки членам родини вище певної суми часто оподатковуються",
+    clue: "gifts to family members",
+    expl: "Inheritance (inheritance tax): податок на спадщину та дарування майна родичам.",
+    options: ["inheritance", "flat tax", "capital gains tax", "wealth tax"],
+    correct: "inheritance"
+  },
+  {
+    q: "government actions concerning <span class='marker'>taxation and public expenditure</span>",
+    trans: "дії уряду щодо оподаткування та державних видатків",
+    clue: "taxation and public expenditure",
+    expl: "Fiscal policy (фіскальна політика): державний бюджет, витрати та податки.",
+    options: ["money supply", "Keynesianism", "fiscal policy", "monetary policy"],
+    correct: "fiscal policy"
+  },
+  {
+    q: "the <span class='marker'>total amount of money available</span> in an economy at a particular time",
+    trans: "загальна кількість грошей в економіці на певний момент часу",
+    clue: "total amount of money available",
+    expl: "Money supply: грошова маса в обігу.",
+    options: ["Keynesianism", "money supply", "monetary policy", "fiscal"],
+    correct: "money supply"
+  },
+  {
+    q: "<span class='marker'>things that are owned by a person, company or organisation</span>, such as money, property or land",
+    trans: "майно у власності особи або компанії: гроші, власність, земля",
+    clue: "things that are owned",
+    expl: "Assets: активи фірми або індивіда.",
+    options: ["incomes", "assets", "liabilities", "costs"],
+    correct: "assets"
+  },
+  {
+    q: "the <span class='marker'>willingness and ability of businesses to offer goods</span> or services for sale",
+    trans: "готовність і здатність бізнесу пропонувати товари чи послуги на продаж",
+    clue: "businesses to offer goods for sale",
+    expl: "Supply (пропозиція): формується підприємствами-продавцями.",
+    options: ["supply", "gross domestic product (GDP)", "demand", "offer"],
+    correct: "supply"
+  },
+  {
+    q: "something which exits apart from other things, having its own <span class='marker'>independent existence</span>",
+    trans: "щось, що існує окремо і має власне незалежне існування",
+    clue: "independent existence",
+    expl: "Entity: самостійний правовий або економічний суб'єкт.",
+    options: ["entity", "authority", "legal person", "natural person"],
+    correct: "entity"
+  },
+  {
+    q: "a detailed document <span class='marker'>describing the future plans of a business</span>",
+    trans: "документ з детальним описом майбутніх планів бізнесу",
+    clue: "document describing future plans of a business",
+    expl: "Business plan: бізнес-план.",
+    options: ["commercial plan", "trade plan", "business plan", "sale"],
+    correct: "business plan"
+  },
+  {
+    q: "tax levies at a <span class='marker'>higher rate on higher income</span> is called a",
+    trans: "податок, ставка якого підвищується разом зі зростанням доходів",
+    clue: "higher rate on higher income",
+    expl: "Progressive tax: прогресивний податок.",
+    options: ["flat tax", "regressive tax", "direct tax", "progressive tax"],
+    correct: "progressive tax"
+  },
+  {
+    q: "shares in a company that give the owner the <span class='marker'>right to receive a dividend before dividends are paid to owners of ordinary shares</span>",
+    trans: "акції, що дають першочергове право на отримання дивідендів перед звичайними акціями",
+    clue: "dividend before ordinary shares",
+    expl: "Preference shares: привілейовані акції.",
+    options: ["ordinary shares", "common shares", "basic shares", "preference shares"],
+    correct: "preference shares"
+  },
+  {
+    q: "the capital that a company gets from <span class='marker'>selling its shares rather than borrowing money</span>",
+    trans: "капітал, отриманий компанією від продажу акцій, а не з кредитів",
+    clue: "selling its shares rather than borrowing",
+    expl: "Equity finance: акціонерне фінансування.",
+    options: ["equity finance", "venue finance", "premises finance", "company finance"],
+    correct: "equity finance"
+  },
+  {
+    q: "A <span class='marker'>plan for achieving success</span>",
+    trans: "план дій для досягнення успіху",
+    clue: "plan for achieving success",
+    expl: "Strategy: стратегія підприємства.",
+    options: ["crisis", "strategy", "promotion", "innovation"],
+    correct: "strategy"
+  },
+  {
+    q: "a tax on <span class='marker'>wages and salaries or on income profits</span> is a",
+    trans: "податок на заробітну плату або прибуток від діяльності",
+    clue: "tax on wages, salaries or profits",
+    expl: "Direct tax (прямий податок): стягується безпосередньо з доходів платника.",
+    options: ["flat tax", "direct tax", "indirect tax", "value-added tax"],
+    correct: "direct tax"
+  },
+  {
+    q: "a <span class='marker'>small mistake or exception in a tax law</span>, which allows you to <span class='marker'>avoid paying something</span>",
+    trans: "невелика помилка або виняток у податковому законі, що дозволяє законно не платити податок",
+    clue: "exception in a tax law",
+    expl: "A loophole: правова лазівка в нормах законодавства.",
+    options: ["an excuse", "a loophole", "an escape"],
+    correct: "a loophole"
+  },
+  {
+    q: "<span class='marker'>positive or negative consequences</span> of economic activities <span class='marker'>experienced by other people</span>",
+    trans: "позитивні або негативні наслідки діяльності фірм для сторонніх осіб",
+    clue: "consequences experienced by other people",
+    expl: "Externalities (зовнішні ефекти/екстерналії): сторонні наслідки виробництва.",
+    options: ["infrastructure", "externalities", "outcome", "allocation"],
+    correct: "externalities"
+  },
+  {
+    q: "the <span class='marker'>difference between the funds a country receives and those it pays</span> for all international transactions",
+    trans: "різниця між коштами, які країна отримує, та коштами, які сплачує за міжнародними розрахунками",
+    clue: "funds receives and pays for international transactions",
+    expl: "Balance of payments: платіжний баланс держави.",
+    options: ["balance between imports and exports", "balance between home and abroad", "balance of payments", "balance of salaries"],
+    correct: "balance of payments"
+  },
+  {
+    q: "the amount of money that is <span class='marker'>smaller than is needed</span>",
+    trans: "сума грошей, яка є меншою за необхідну потребу",
+    clue: "smaller than is needed",
+    expl: "Deficit: дефіцит.",
+    options: ["equilibrium", "deficit", "surplus", "demand"],
+    correct: "deficit"
+  },
+  {
+    q: "the <span class='marker'>willingness and ability of consumers to purchase</span> goods and services",
+    trans: "готовність і здатність споживачів купувати товари та послуги",
+    clue: "consumers to purchase",
+    expl: "Demand (попит): бажання та можливість покупців придбати товар.",
+    options: ["gross domestic product (GDP)", "demand", "offer", "supply"],
+    correct: "demand"
+  },
+  {
+    q: "a period, usually at least six months, of <span class='marker'>low economic activity</span>, when investment loses value, <span class='marker'>businesses fail, and unemployment rises</span>",
+    trans: "період низької активності (від 6 місяців), коли зростає безробіття та банкрутства",
+    clue: "at least six months, low activity, unemployment rises",
+    expl: "Recession: економічна рецесія.",
+    options: ["inflation", "recession", "investment", "economic trend"],
+    correct: "recession"
+  },
+  {
+    q: "the <span class='marker'>sales of a company expressed as a percentage</span> of total sales in a given market",
+    trans: "обсяг продажів компанії у відсотках від загального обсягу всього ринку",
+    clue: "sales expressed as a percentage of total sales",
+    expl: "Market share: частка компанії на ринку.",
+    options: ["market share", "shelves", "logo", "retailers"],
+    correct: "market share"
+  },
+  {
+    q: "a payment made to <span class='marker'>pay back all or part of a loan rather than to pay interest</span> on the loan",
+    trans: "платіж для повернення суми позики, без урахування нарахованих відсотків",
+    clue: "pay back a loan rather than interest",
+    expl: "Principal: основна сума позики (тіло кредиту).",
+    options: ["crucial payment", "basical payment", "basic payment", "principal"],
+    correct: "principal"
+  },
+  {
+    q: "an agreement to pay in order to <span class='marker'>use land, a building, a vehicle or a piece of equipment</span> for a particular period of time",
+    trans: "угода про оплату за користування майном, транспортом чи обладнанням на певний період",
+    clue: "agreement to use land, vehicle or equipment",
+    expl: "Lease: договір оренди або лізингу.",
+    options: ["liaise", "entity", "commission", "lease"],
+    correct: "lease"
+  },
+  {
+    q: "basic systems and services such as <span class='marker'>transport and power supplies</span>",
+    trans: "базові системи та служби: транспорт, дороги, електропостачання",
+    clue: "transport and power supplies",
+    expl: "Infrastructure: базова інфраструктура.",
+    options: ["infrastructure", "outcome", "allocation", "externalities"],
+    correct: "infrastructure"
+  },
+  {
+    q: "<span class='marker'>beliefs about what will happen</span> in the future",
+    trans: "уявлення або сподівання про те, що станеться в майбутньому",
+    clue: "beliefs about future",
+    expl: "Expectations: економічні очікування суб'єктів ринку.",
+    options: ["expectations", "forecast", "foreseen", "awaits"],
+    correct: "expectations"
+  },
+  {
+    q: "loans with a <span class='marker'>low-interest rate</span>, often offered by the government of a country to another country or organisation",
+    trans: "кредити з низькою відсотковою ставкою, що часто надаються урядом іншій державі",
+    clue: "low-interest rate loans",
+    expl: "Soft loans: пільгові або м'які кредити.",
+    options: ["soft loans", "flat loans", "narrow loans", "silky loans"],
+    correct: "soft loans"
+  },
+  {
+    q: "money that you <span class='marker'>keep, usually in a bank account, instead of spending it</span>",
+    trans: "гроші, які ви зберігаєте на рахунку замість витрачання",
+    clue: "keep instead of spending",
+    expl: "Savings: заощадження.",
+    options: ["savings", "incomes", "liabilities", "revenues"],
+    correct: "savings"
+  },
+  {
+    q: "property that someone borrowing money will <span class='marker'>give to the loan company if he or she cannot pay the debt</span>",
+    trans: "майно, яке позичальник передає під гарантію кредитору у разі неповернення боргу",
+    clue: "property give to loan company if cannot pay debt",
+    expl: "Collateral/security: застава під кредитні зобов'язання.",
+    options: ["collateral/security", "shares", "stock and shares", "assets"],
+    correct: "collateral/security"
+  },
+  {
+    q: "<span class='marker'>purchasing and using goods and services</span>",
+    trans: "купівля та фактичне використання товарів і послуг",
+    clue: "purchasing and using",
+    expl: "Consumption: кінцеве споживання.",
+    options: ["consumption", "offer", "demand", "supply"],
+    correct: "consumption"
+  },
+  {
+    q: "something that is <span class='marker'>able to develop into earning money in the future</span> when the necessary conditions exist",
+    trans: "те, що здатне приносити дохід у майбутньому за належних умов",
+    clue: "develop into earning money",
+    expl: "Profit potential: потенціал отримання прибутку.",
+    options: ["liable potential", "revenue potential", "profit potential", "venue potential"],
+    correct: "profit potential"
+  },
+  {
+    q: "Tax paid on the property, <span class='marker'>sales transaction, imports</span>, and so on is a/an",
+    trans: "податок, який сплачується з майна, операцій купівлі-продажу, імпорту тощо",
+    clue: "tax on sales transaction, imports",
+    expl: "Indirect tax: непрямий податок (акциз, мито, ПДВ тощо).",
+    options: ["direct tax", "flat tax", "indirect tax", "value-added tax"],
+    correct: "indirect tax"
+  },
+  {
+    q: "the tax people pay on their <span class='marker'>wages and salaries</span> is called",
+    trans: "податок, який люди сплачують зі своїх заробітних плат",
+    clue: "tax on wages and salaries",
+    expl: "Income tax: прибутковий податок з доходів громадян.",
+    options: ["wealth tax", "salary tax", "capital transfer tax", "income tax"],
+    correct: "income tax"
+  },
+  {
+    q: "to organize something to <span class='marker'>make a profit</span>",
+    trans: "організувати діяльність або випуск заради отримання прибутку",
+    clue: "organize something to make a profit",
+    expl: "To commercialize: комерціалізувати.",
+    options: ["commercialize", "optimize", "restrict", "locate"],
+    correct: "commercialize"
+  },
+  {
+    q: "to <span class='marker'>put money aside to spend</span> in the future",
+    trans: "відкладати гроші, щоб витратити їх у майбутньому",
+    clue: "put money aside",
+    expl: "To save: заощаджувати гроші.",
+    options: ["save", "bank", "withdraw", "hide"],
+    correct: "save"
+  },
+  {
+    q: "to <span class='marker'>record the progress or development</span> of something over a <span class='marker'>period of past time</span>",
+    trans: "фіксувати розвиток або прогрес чогось за минулий період часу",
+    clue: "record progress over past time",
+    expl: "Trackback: ретроспективне відстеження історії розвитку.",
+    options: ["track line", "track queue", "trackback", "track front"],
+    correct: "trackback"
+  },
+  {
+    q: "to be in control of or manage a business organisation that is <span class='marker'>getting bigger</span>",
+    trans: "керувати бізнес-організацією, яка збільшується в масштабах",
+    clue: "organisation that is getting bigger",
+    expl: "Run a growing operation: керувати компанією, що зростає.",
+    options: ["run a growing operation", "run a flat operation", "run a ungrowing operation", "run a higher operation"],
+    correct: "run a growing operation"
+  },
+  {
+    q: "<span class='marker'>new and likely to have an effect</span> on how things are done in the future",
+    trans: "новий і здатний суттєво змінити підхід до справи в майбутньому",
+    clue: "new and likely to have an effect",
+    expl: "Ground-breaking: новаторський, проривний, революційний.",
+    options: ["first-breaking", "ground-breaking", "base-breaking", "basical-breaking"],
+    correct: "ground-breaking"
+  },
+  {
+    q: "to <span class='marker'>begin to do something or deal</span> with something",
+    trans: "розпочати робити щось або взятися за справу",
+    clue: "begin to do or deal with something",
+    expl: "To go about: стійке фразове дієслово зі значенням братися до справи.",
+    options: ["go off", "go onto", "go about", "go into"],
+    correct: "go about"
+  }
+];
+
+const STORAGE_KEY = "category1_definitions_v2";
+
+function shuffleArray(arr) {
+  const newArr = [...arr];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
+let state = [];
+let currentIndex = 0;
+
+function loadInitialState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      state = JSON.parse(saved);
+      if (state.length === rawQuestions.length) return;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  state = rawQuestions.map((item, idx) => ({
+    id: idx,
+    q: item.q,
+    trans: item.trans,
+    clue: item.clue,
+    expl: item.expl,
+    options: shuffleArray(item.options),
+    correctStr: item.correct,
+    answered: false,
+    selectedStr: null,
+    isCorrect: false,
+    hintShown: false
+  }));
+  saveState();
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function initNavGrid() {
+  const container = document.getElementById("nav-grid");
+  container.innerHTML = "";
+  state.forEach((_, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn";
+    btn.id = `nav-btn-${idx}`;
+    btn.innerText = idx + 1;
+    btn.onclick = () => jumpToQuestion(idx);
+    container.appendChild(btn);
+  });
+}
+
+function updateNavGridAndStats() {
+  let correctCount = 0;
+  let wrongCount = 0;
+
+  state.forEach((s, idx) => {
+    const btn = document.getElementById(`nav-btn-${idx}`);
+    if (!btn) return;
+    btn.className = "nav-btn";
+    if (idx === currentIndex) btn.classList.add("active");
+    if (s.answered) {
+      if (s.isCorrect) {
+        btn.classList.add("correct");
+        correctCount++;
+      } else {
+        btn.classList.add("wrong");
+        wrongCount++;
+      }
+    }
+  });
+
+  const leftCount = state.length - (correctCount + wrongCount);
+  document.getElementById("stat-correct").innerText = correctCount;
+  document.getElementById("stat-wrong").innerText = wrongCount;
+  document.getElementById("stat-left").innerText = leftCount;
+  document.getElementById("score-counter").innerText = `Правильно: ${correctCount}`;
+}
+
+function loadQuestion(idx) {
+  currentIndex = idx;
+  const item = state[currentIndex];
+
+  document.getElementById("q-counter").innerText = `Питання ${currentIndex + 1} / ${state.length}`;
+  document.getElementById("progress").style.width = `${((currentIndex + 1) / state.length) * 100}%`;
+
+  const qBox = document.getElementById("q-box");
+  qBox.innerHTML = item.q;
+  if (item.answered || item.hintShown) {
+    qBox.classList.add("show-markers");
+  } else {
+    qBox.classList.remove("show-markers");
+  }
+
+  const container = document.getElementById("opt-container");
+  container.innerHTML = "";
+
+  item.options.forEach((optStr) => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.innerText = optStr;
+
+    if (item.answered) {
+      btn.disabled = true;
+      if (optStr === item.correctStr) btn.classList.add("correct");
+      if (optStr === item.selectedStr && !item.isCorrect) btn.classList.add("wrong");
+    } else {
+      btn.onclick = () => selectAnswer(optStr);
+    }
+    container.appendChild(btn);
+  });
+
+  const reviewBox = document.getElementById("review-box");
+  if (item.answered) {
+    document.getElementById("trans-text").innerText = item.trans;
+    document.getElementById("clue-text").innerText = item.clue;
+    document.getElementById("expl-text").innerText = item.expl;
+    reviewBox.className = "review-box " + (item.isCorrect ? "correct-border" : "wrong-border");
+    reviewBox.style.display = "block";
+  } else {
+    reviewBox.style.display = "none";
+  }
+
+  document.getElementById("prev-btn").disabled = (currentIndex === 0);
+  document.getElementById("next-btn").disabled = (currentIndex === state.length - 1);
+  updateNavGridAndStats();
+}
+
+function selectAnswer(optStr) {
+  const item = state[currentIndex];
+  item.answered = true;
+  item.selectedStr = optStr;
+  item.isCorrect = (optStr === item.correctStr);
+
+  saveState();
+  loadQuestion(currentIndex);
+}
+
+function toggleHint() {
+  state[currentIndex].hintShown = true;
+  saveState();
+  document.getElementById("q-box").classList.add("show-markers");
+}
+
+function prevQuestion() {
+  if (currentIndex > 0) loadQuestion(currentIndex - 1);
+}
+
+function nextQuestion() {
+  if (currentIndex < state.length - 1) loadQuestion(currentIndex + 1);
+}
+
+function jumpToQuestion(idx) {
+  loadQuestion(idx);
+}
+
+function confirmReset() {
+  if (confirm("Ви дійсно хочете скинути всі відповіді, лічильники та заново перемішати варіанти?")) {
+    localStorage.removeItem(STORAGE_KEY);
+    loadInitialState();
+    initNavGrid();
+    loadQuestion(0);
+  }
+}
+
+loadInitialState();
+initNavGrid();
+loadQuestion(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажер: Категорія 5 (18 питань - Управлінські кейси v2)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b1120;
+      color: #f8fafc;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .layout {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      max-width: 1100px;
+      width: 100%;
+      align-items: flex-start;
+    }
+    .sidebar {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      width: 260px;
+      flex-shrink: 0;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .grid::-webkit-scrollbar {
+      width: 5px;
+    }
+    .grid::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .nav-btn {
+      background: #334155;
+      color: #cbd5e1;
+      border: 2px solid transparent;
+      padding: 8px 0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: #475569; }
+    .nav-btn.active { border-color: #38bdf8 !important; transform: scale(1.05); }
+    .nav-btn.correct { background: #166534 !important; color: #ffffff !important; }
+    .nav-btn.wrong { background: #991b1b !important; color: #ffffff !important; }
+
+    .sidebar-stats {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #334155;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-row { display: flex; justify-content: space-between; }
+    .stat-val-green { color: #4ade80; font-weight: 600; }
+    .stat-val-red { color: #f87171; font-weight: 600; }
+    .stat-val-blue { color: #38bdf8; font-weight: 600; }
+
+    .reset-btn {
+      width: 100%;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.2s;
+    }
+    .reset-btn:hover { background: #b91c1c; }
+
+    .main-card {
+      background: #1e293b;
+      border-radius: 14px;
+      flex-grow: 1;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #3b82f6;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .question-box {
+      font-size: 17.5px;
+      font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+      background: #0f172a;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .marker {
+      background: transparent;
+      color: inherit;
+      transition: all 0.3s;
+    }
+    .show-markers .marker {
+      background: #facc15 !important;
+      color: #0f172a !important;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .btn {
+      background: #334155;
+      border: 2px solid transparent;
+      color: #f8fafc;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 15px;
+      line-height: 1.45;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover:not(:disabled) { background: #475569; }
+    .btn.correct {
+      background: #166534 !important;
+      border-color: #22c55e !important;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .btn.wrong {
+      background: #991b1b !important;
+      border-color: #ef4444 !important;
+      color: #ffffff;
+    }
+    .review-box {
+      display: none;
+      background: #091224;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 15px;
+      font-size: 14.5px;
+      line-height: 1.5;
+    }
+    .review-box.correct-border { border-left-color: #22c55e; }
+    .review-box.wrong-border { border-left-color: #ef4444; }
+    .review-item { margin-bottom: 8px; }
+    .review-item strong { color: #38bdf8; }
+
+    .control-panel {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .nav-arrow-btn {
+      flex: 1;
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nav-arrow-btn:hover:not(:disabled) { background: #475569; }
+    .nav-arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .hint-btn {
+      background: #854d0e;
+      color: #fef08a;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hint-btn:hover { background: #a16207; }
+
+    @media (max-width: 820px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; }
+      .grid { grid-template-columns: repeat(6, 1fr); max-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">Питання (1 - 18)</div>
+    <div class="grid" id="nav-grid"></div>
+    
+    <div class="sidebar-stats">
+      <div class="stat-row"><span>Правильно:</span> <span class="stat-val-green" id="stat-correct">0</span></div>
+      <div class="stat-row"><span>Помилок:</span> <span class="stat-val-red" id="stat-wrong">0</span></div>
+      <div class="stat-row"><span>Залишилось:</span> <span class="stat-val-blue" id="stat-left">18</span></div>
+    </div>
+    
+    <button class="reset-btn" onclick="confirmReset()">Скинути весь прогрес</button>
+  </div>
+
+  <div class="main-card" id="app">
+    <div class="header">
+      <span id="q-counter">Питання 1 / 18</span>
+      <span id="score-counter">Правильно: 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    
+    <div class="question-box" id="q-box"></div>
+    <div class="options" id="opt-container"></div>
+    
+    <div class="review-box" id="review-box">
+      <div class="review-item"><strong>Переклад:</strong> <span id="trans-text"></span></div>
+      <div class="review-item"><strong>Ключовий маркер:</strong> <span id="clue-text"></span></div>
+      <div class="review-item"><strong>Пояснення:</strong> <span id="expl-text"></span></div>
+    </div>
+    
+    <div class="control-panel">
+      <button class="nav-arrow-btn" id="prev-btn" onclick="prevQuestion()"><- Назад</button>
+      <button class="hint-btn" id="hint-btn" onclick="toggleHint()">Підказка</button>
+      <button class="nav-arrow-btn" id="next-btn" onclick="nextQuestion()">Наступне -></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const rawQuestions = [
+  {
+    q: "What is the function of <span class='marker'>controlling in budgeting</span>?",
+    trans: "Яка функція контролю в процесі бюджетування?",
+    clue: "monitoring and adjusting expenditures to adhere to the budget",
+    expl: "Контроль у бюджетуванні полягає у відстеженні реальних витрат та їх оперативному коригуванні для відповідності затвердженому бюджету.",
+    options: [
+      "Reducing the amount of monitoring in financial matters",
+      "Monitoring and adjusting expenditures to adhere to the budget",
+      "Ignoring minor deviations to focus on major financial issues",
+      "Focusing on maximizing profits at the expense of budgeting",
+      "Shifting the budget responsibilities to the marketing department",
+      "Delegating financial decision-making to external consultants"
+    ],
+    correct: "Monitoring and adjusting expenditures to adhere to the budget"
+  },
+  {
+    q: "How can a company <span class='marker'>mitigate the risks associated with financial distress during the decline phase</span> of its life cycle, and what role do <span class='marker'>debt management strategies</span> play in this process?",
+    trans: "Як компанія може зменшити фінансові ризики на стадії спаду життєвого циклу, і яку роль відіграють стратегії управління боргом?",
+    clue: "managing debt efficiently by restructuring obligations, reducing high-interest debt, liquidating non-essential assets",
+    expl: "Правильна антикризова стратегія на фазі спаду: реструктуризація боргових зобов'язань, погашення дорогих позик та продаж непрофільних активів.",
+    options: [
+      "The focus should be on expanding operations aggressively, even in the decline phase, to drive short-term revenue, ignoring the long-term risks associated with poor debt management.",
+      "To mitigate financial distress, the company should focus on managing debt efficiently by restructuring obligations, reducing high-interest debt, and liquidating non-essential assets.",
+      "The focus should be on drastically cutting all debt-related expenses, including laying off employees, which might reduce costs but lead to operational disruptions.",
+      "The company should avoid any efforts to restructure or manage debt, hoping that external factors will correct the financial distress.",
+      "The company should continue taking on new debt to fuel operations and product development, assuming that new investments will eventually reverse the decline, despite the increasing financial risk.",
+      "The company can take on more high-interest loans to fund product innovation and expansion during the decline phase, assuming that innovation will turn the business around."
+    ],
+    correct: "To mitigate financial distress, the company should focus on managing debt efficiently by restructuring obligations, reducing high-interest debt, and liquidating non-essential assets."
+  },
+  {
+    q: "When considering the financial risks associated with the decline or closure phase of a business, what is the primary challenge faced by businesses that <span class='marker'>fail to properly manage their assets and liabilities</span> during this period?",
+    trans: "З яким головним ризиком стикається бізнес, якщо не керує належним чином активами та пасивами у період спаду або закриття?",
+    clue: "risks entering insolvency, where liabilities exceed assets",
+    expl: "Неправильне управління активами та пасивами призводить до стану банкрутства або неплатоспроможності (insolvency), коли борги перевищують вартість активів.",
+    options: [
+      "A major risk during this phase is the failure to attract new investors who may be willing to buy the company out of financial distress, leaving the business to face dissolution without a viable exit strategy.",
+      "If a business fails to manage its assets and liabilities effectively, it risks entering insolvency, where liabilities exceed assets, leaving little or no value for stakeholders, including shareholders, creditors, and employees.",
+      "The business may struggle with expanding into new markets during the decline phase, leading to further financial strain, though this can be temporarily offset by significant brand recognition.",
+      "The key challenge in this phase is the ability to continuously innovate product offerings despite declining sales, which may help the business maintain its relevance in the market but does little to address financial mismanagement.",
+      "The primary challenge lies in maintaining customer relationships and brand loyalty, even if the business is on the brink of closure, which might delay the inevitable decline but not address the financial risks.",
+      "While the business may face challenges, effective financial planning and cost-cutting measures can help stabilize the company, even in the closure phase, preventing insolvency and preserving some value."
+    ],
+    correct: "If a business fails to manage its assets and liabilities effectively, it risks entering insolvency, where liabilities exceed assets, leaving little or no value for stakeholders, including shareholders, creditors, and employees."
+  },
+  {
+    q: "What is the primary reason why a company might <span class='marker'>choose to enter the decline phase</span> of its life cycle <span class='marker'>rather than attempting to reverse the trend</span>, and what are the long-term implications of this decision?",
+    trans: "Чому компанія може свідомо дозволити собі перейти у фазу спаду замість спроб повернути зростання назад?",
+    clue: "no longer profitable to invest in reversing the trend, obsolete products, increased competition",
+    expl: "Якщо ринкові умови змінилися, продукт застарів, а конкуренція занадто сильна, подальші інвестиції в порятунок напрямку приносять лише збитки.",
+    options: [
+      "A company may opt to enter the decline phase deliberately if it is no longer profitable to invest in reversing the trend due to changing market conditions, obsolete products, or increased competition.",
+      "The company may continue operations without a clear exit strategy, assuming that the market will reverse its decline naturally, though this often leads to a slow financial loss.",
+      "The company might decide to continue investing heavily in marketing and product development, assuming that revitalizing its offerings will turn the trend around, despite the increasingly negative market signals.",
+      "The business might decide to reduce costs significantly, laying off employees and cutting back on product lines, but this strategy may lead to further market decline and failure.",
+      "The company may opt for diversification into unrelated markets, hoping to offset the decline in its current business, but this can lead to resource strain and focus dilution.",
+      "Entering the decline phase could signal a shift to reinvestment in a new industry, though this may come with risks if the new industry has not been properly researched or aligned with core competencies."
+    ],
+    correct: "A company may opt to enter the decline phase deliberately if it is no longer profitable to invest in reversing the trend due to changing market conditions, obsolete products, or increased competition."
+  },
+  {
+    q: "What role does a company's <span class='marker'>capital structure play</span> in determining its ability to <span class='marker'>withstand financial crises</span>, and how does this affect long-term decision-making?",
+    trans: "Яку роль відіграє структура капіталу в здатності компанії протистояти фінансовим кризам?",
+    clue: "well-balanced capital structure, mix of debt and equity, leverage debt while having equity to absorb potential losses",
+    expl: "Збалансована пропорція між боргом та власним капіталом дає змогу одночасно фінансувати розвиток і мати подушку безпеки для покриття збитків.",
+    options: [
+      "A company with a high level of debt is better equipped to handle financial crises, as it can rely on borrowed funds to maintain operations and investment, despite the increased risk of insolvency.",
+      "A company should entirely focus on increasing equity capital during a financial crisis, reducing debt obligations to zero. While this strategy might reduce immediate risk, it could severely limit financial flexibility and profitability.",
+      "A company should rely entirely on equity financing during a financial crisis to avoid the risk of further debt accumulation, even though this could limit its growth potential and lead to shareholder dilution.",
+      "Companies should avoid seeking external capital and instead focus solely on internal reserves, which can restrict their capacity to react to external economic shocks and growth opportunities.",
+      "A well-balanced capital structure, which includes a mix of debt and equity, allows a company to manage financial risks better and provides greater flexibility in responding to economic downturns. This balance ensures that the company can leverage debt for growth while having equity to absorb potential losses.",
+      "A highly leveraged company, relying predominantly on debt, may have fewer resources available to make critical long-term decisions due to a higher burden of interest payments and limited access to further financing during crises."
+    ],
+    correct: "A well-balanced capital structure, which includes a mix of debt and equity, allows a company to manage financial risks better and provides greater flexibility in responding to economic downturns. This balance ensures that the company can leverage debt for growth while having equity to absorb potential losses."
+  },
+  {
+    q: "What are the <span class='marker'>main types of control in management</span>?",
+    trans: "Які основні типи контролю за часом здійснення виділяють у менеджменті?",
+    clue: "Feedforward, concurrent, and feedback control",
+    expl: "Класична управлінська тріада: Feedforward (попередній контроль), concurrent (поточний контроль), feedback (контроль за результатами/зворотний зв'язок).",
+    options: [
+      "Autocratic control, democratic control, and laissez-faire control",
+      "Financial control, performance control, and project control",
+      "Preventive control, corrective control, and directive control",
+      "Supervisory control, operational control, and strategic control",
+      "Feedforward, concurrent, and feedback control",
+      "Market control, bureaucratic control, and financial control"
+    ],
+    correct: "Feedforward, concurrent, and feedback control"
+  },
+  {
+    q: "During a crisis, how can organizations <span class='marker'>maintain customer trust and loyalty</span>, and what specific actions can be taken to minimize the negative impact on the brand?",
+    trans: "Як під час кризи компанії зберегти довіру та лояльність клієнтів і захистити бренд?",
+    clue: "clear, consistent updates, addressing customer concerns, offering compensation where appropriate",
+    expl: "Відкрите і чесне інформування, реагування на занепокоєння покупців та надання компенсацій є найкращим шляхом збереження репутації бренду.",
+    options: [
+      "By providing clear, consistent updates, addressing customer concerns, and offering compensation where appropriate",
+      "By limiting communication with customers to avoid further negativity",
+      "By ignoring customer feedback and focusing solely on resolving internal issues",
+      "By reducing product quality to cut costs and recover financially",
+      "By prioritizing new customers over existing ones during the recovery process",
+      "By ceasing all marketing and public communication until the crisis passes"
+    ],
+    correct: "By providing clear, consistent updates, addressing customer concerns, and offering compensation where appropriate"
+  },
+  {
+    q: "What role does <span class='marker'>innovation play in crisis management</span>, and how can organizations leverage innovation to not only recover from a crisis but also emerge stronger and more competitive?",
+    trans: "Яку роль відіграють інновації в антикризовому управлінні для відновлення та посилення конкурентоспроможності?",
+    clue: "adapt quickly, develop new solutions, improve processes, turning crises into opportunities for growth",
+    expl: "Інноваційні підходи дають бізнесу гнучкість адаптуватися до змін, оптимізувати робочі процеси та перетворити кризу на точку росту.",
+    options: [
+      "Innovation should be avoided as it may distract from the immediate issue at hand",
+      "Innovation should be focused on cutting costs rather than improving organizational resilience",
+      "Innovation is irrelevant during a crisis and should be postponed until after recovery",
+      "Innovation can only be useful in non-crisis periods, not during high-pressure situations",
+      "Innovation should focus only on maintaining the status quo during a crisis",
+      "Innovation allows organizations to adapt quickly, develop new solutions, and improve processes, turning crises into opportunities for growth"
+    ],
+    correct: "Innovation allows organizations to adapt quickly, develop new solutions, and improve processes, turning crises into opportunities for growth"
+  },
+  {
+    q: "Why is it critical for organizations to have a <span class='marker'>crisis management plan in place</span>, and what should such a plan include to ensure readiness in the event of an emergency?",
+    trans: "Чому компаніям вкрай важливо мати план антикризового управління і що до нього має входити?",
+    clue: "risk assessments, clear roles, communication protocols, and response procedures",
+    expl: "Ефективний антикризовий план повинен містити оцінку потенційних загроз, розподіл обов'язків, сценарії реагування та правила зовнішньої комунікації.",
+    options: [
+      "The plan should delegate crisis management solely to top leadership without involving employees",
+      "The plan should not be shared with employees to maintain a sense of control",
+      "The plan should focus only on financial recovery and legal compliance",
+      "The plan should include risk assessments, clear roles, communication protocols, and response procedures",
+      "The plan should prioritize customer satisfaction above operational recovery",
+      "The plan should ignore potential risks and focus only on daily operations"
+    ],
+    correct: "The plan should include risk assessments, clear roles, communication protocols, and response procedures"
+  },
+  {
+    q: "In the context of conflict management, what strategies can organizations adopt to <span class='marker'>address and resolve conflicts between employees or teams</span> in a timely and effective manner?",
+    trans: "Які стратегії доцільно застосовувати для своєчасного та ефективного розв'язання конфліктів між співробітниками або відділами?",
+    clue: "open communication, active listening, and early intervention",
+    expl: "Найкращі управлінські практики усунення конфліктів: заохочення відкритого висловлення думок, активне слухання позицій сторін та раннє втручання.",
+    options: [
+      "Provide financial incentives to teams without addressing underlying issues",
+      "Increase the frequency of team-building activities",
+      "Ignore minor conflicts and address only major disruptions",
+      "Encourage open communication, active listening, and early intervention",
+      "Punish the employees involved in the conflict to prevent further issues",
+      "Delegate all conflict-related issues to an external consultant"
+    ],
+    correct: "Encourage open communication, active listening, and early intervention"
+  },
+  {
+    q: "How can a manager effectively <span class='marker'>mediate a conflict between two employees</span> with differing opinions or working styles while maintaining team cohesion and productivity?",
+    trans: "Як керівнику виступити ефективним медіатором у суперечці двох підлеглих без шкоди для згуртованості колективу?",
+    clue: "facilitating open discussion, focusing on common goals, and finding mutually beneficial solutions",
+    expl: "Медіація передбачає відкрите обговорення проблеми, нагадування про спільні командні цілі та пошук рішення за принципом виграш-виграш (win-win).",
+    options: [
+      "By facilitating open discussion, focusing on common goals, and finding mutually beneficial solutions",
+      "By separating the employees permanently to prevent further interaction",
+      "By taking sides with one employee to show leadership strength",
+      "By imposing a strict rule that no disagreements are allowed",
+      "By ignoring the conflict and hoping it resolves on its own",
+      "By delegating the responsibility of resolving the conflict to a third party"
+    ],
+    correct: "By facilitating open discussion, focusing on common goals, and finding mutually beneficial solutions"
+  },
+  {
+    q: "During the <span class='marker'>expansion phase of a business life cycle</span>, why is it important for a company to focus on building a <span class='marker'>scalable operational infrastructure</span>, and how does this impact long-term growth?",
+    trans: "Чому на етапі масштабування важливо створювати адаптивну операційну інфраструктуру?",
+    clue: "accommodate increased demand without compromising quality or efficiency",
+    expl: "Масштабована інфраструктура дозволяє компанії задовольняти стрімко зростаючий попит ринку без втрати якості послуг або падіння продуктивності.",
+    options: [
+      "The company should concentrate on expanding its customer base and neglect infrastructure development, assuming that future demand will be manageable with the current resources.",
+      "The company should prioritize cost-cutting measures during the expansion phase, avoiding investment in infrastructure in favor of reducing operational expenses.",
+      "The focus should be on maximizing short-term profits, ignoring the need for scalable infrastructure, as operational capacity is assumed to expand on its own over time.",
+      "Focusing on increasing operational costs during the expansion phase, without scaling infrastructure, may lead to inefficiencies and reduced profitability in the long run.",
+      "Building a scalable operational infrastructure during the expansion phase allows a company to accommodate increased demand without compromising quality or efficiency.",
+      "Focusing too much on scaling infrastructure at the expense of market research may lead to misalignment with customer needs, causing potential market confusion."
+    ],
+    correct: "Building a scalable operational infrastructure during the expansion phase allows a company to accommodate increased demand without compromising quality or efficiency."
+  },
+  {
+    q: "How can an organization <span class='marker'>distinguish between a minor issue and a full-scale crisis</span>, and what criteria should be used to determine the level of intervention required?",
+    trans: "Як відрізнити звичайну операційну проблему від справжньої кризи і якими критеріями керуватися?",
+    clue: "assessing the severity of the impact on operations, reputation, and stakeholders",
+    expl: "Критеріями оцінки є ступінь загрози базовим бізнес-процесам, шкода бренду та вплив на клієнтів, інвесторів і партнерів.",
+    options: [
+      "By disregarding the issue until it causes significant financial loss",
+      "By relying on external media coverage to define the scale of the crisis",
+      "By assessing the severity of the impact on operations, reputation, and stakeholders",
+      "By evaluating only the immediate concerns without long-term implications",
+      "By considering the cost of resolving the issue without analyzing the long-term effects",
+      "By focusing solely on the number of employees affected"
+    ],
+    correct: "By assessing the severity of the impact on operations, reputation, and stakeholders"
+  },
+  {
+    q: "How does <span class='marker'>effective leadership guide an organization through a crisis</span> while ensuring that <span class='marker'>employee morale remains high</span> and the organization can recover quickly?",
+    trans: "Як лідери проводять колектив через кризу, підтримуючи високий моральний дух людей?",
+    clue: "provide direction, reassure employees, make timely decisions, and foster a sense of stability",
+    expl: "Справжні лідери задають чіткий напрямок дій, підтримують команду емоційно, беруть на себе відповідальність за своєчасні рішення та повертають впевненість.",
+    options: [
+      "Leaders ignore employee concerns and focus only on external perceptions",
+      "Leaders avoid communication and focus on technical solutions only",
+      "Leaders implement draconian measures to demonstrate authority and control",
+      "Leaders focus solely on minimizing financial losses without considering the emotional impact on employees",
+      "Leaders provide direction, reassure employees, make timely decisions, and foster a sense of stability",
+      "Leaders delegate all decision-making to external consultants without internal involvement"
+    ],
+    correct: "Leaders provide direction, reassure employees, make timely decisions, and foster a sense of stability"
+  },
+  {
+    q: "In what ways can a <span class='marker'>positive organizational culture</span> influence how <span class='marker'>conflicts are managed and resolved</span>, and why is it essential for preventing long-term issues?",
+    trans: "Як сприятлива культура організації сприяє успішному подоланню конфліктних ситуацій?",
+    clue: "culture of transparency, respect, and open communication fosters effective conflict resolution",
+    expl: "Культура відкритості, поваги до колег та чесного діалогу усуває токсичність і допомагає вирішувати суперечки конструктивно ще на ранніх стадіях.",
+    options: [
+      "A hierarchical culture with rigid communication prevents conflict from occurring",
+      "A competitive culture increases the frequency of conflict but encourages individual growth",
+      "A culture that discourages open dialogue helps prevent conflict from arising",
+      "A culture that prioritizes financial success over employee satisfaction encourages hidden conflicts",
+      "A relaxed culture of indifference promotes the avoidance of conflict resolution",
+      "A culture of transparency, respect, and open communication fosters effective conflict resolution"
+    ],
+    correct: "A culture of transparency, respect, and open communication fosters effective conflict resolution"
+  },
+  {
+    q: "What is a <span class='marker'>key challenge in the controlling process</span>?",
+    trans: "Що є головною проблемою або викликом під час здійснення контролю?",
+    clue: "Ensuring accuracy and timeliness of data",
+    expl: "Для ефективного управлінського контролю життєво важливо мати достовірні (accuracy) та своєчасно отримані (timeliness) показники.",
+    options: [
+      "Reducing the amount of data needed",
+      "Limiting performance reviews to financial aspects only",
+      "Encouraging minimal involvement in the planning phase",
+      "Preventing any involvement from employees",
+      "Ensuring accuracy and timeliness of data",
+      "Ensuring that only top managers are involved in decision-making"
+    ],
+    correct: "Ensuring accuracy and timeliness of data"
+  },
+  {
+    q: "What is the <span class='marker'>most effective marketing strategy</span> for a company during the <span class='marker'>growth phase</span> of its business life cycle, and how can it capitalize on emerging market opportunities?",
+    trans: "Яка маркетингова стратегія є найбільш доцільною на етапі активного росту компанії?",
+    clue: "increasing brand awareness through targeted advertising, strategic partnerships, and leveraging customer feedback",
+    expl: "На фазі росту ключовий фокус робиться на розширенні впізнаваності бренду, таргетованій рекламі, партнерських угодах та покращенні продукту за відгуками клієнтів.",
+    options: [
+      "Aggressively pursuing market saturation by rapidly launching new product lines across various unrelated sectors may increase risk without ensuring stability in core business areas.",
+      "The primary strategy should be to invest all resources into securing high-profile endorsements without considering long-term brand sustainability.",
+      "During the growth phase, a company should focus on increasing brand awareness through targeted advertising, strategic partnerships, and leveraging customer feedback for product improvements.",
+      "The company should focus solely on reducing prices to attract a broader customer base, without investing in brand positioning or targeting specific market segments.",
+      "The strategy should focus on maintaining low marketing efforts to conserve resources for future expansion, relying primarily on word-of-mouth and organic growth.",
+      "The company should emphasize heavy investment in niche marketing efforts, ignoring broader market appeal, as it may lead to stronger customer relationships."
+    ],
+    correct: "During the growth phase, a company should focus on increasing brand awareness through targeted advertising, strategic partnerships, and leveraging customer feedback for product improvements."
+  },
+  {
+    q: "Which control type is best used in <span class='marker'>strategic decision-making</span>?",
+    trans: "Який тип контролю застосовується для підтримки прийняття стратегічних рішень?",
+    clue: "Strategic control",
+    expl: "Стратегічний контроль (Strategic control) здійснюється вищим керівництвом для оцінки реалізації довгострокових планів компанії.",
+    options: [
+      "Strategic control",
+      "Financial control",
+      "Operational control",
+      "Bureaucratic control",
+      "Tactical control",
+      "Process control"
+    ],
+    correct: "Strategic control"
+  }
+];
+
+const STORAGE_KEY = "category5_cases_v2";
+
+function shuffleArray(arr) {
+  const newArr = [...arr];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
+let state = [];
+let currentIndex = 0;
+
+function loadInitialState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      state = JSON.parse(saved);
+      if (state.length === rawQuestions.length) return;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  state = rawQuestions.map((item, idx) => ({
+    id: idx,
+    q: item.q,
+    trans: item.trans,
+    clue: item.clue,
+    expl: item.expl,
+    options: shuffleArray(item.options),
+    correctStr: item.correct,
+    answered: false,
+    selectedStr: null,
+    isCorrect: false,
+    hintShown: false
+  }));
+  saveState();
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function initNavGrid() {
+  const container = document.getElementById("nav-grid");
+  container.innerHTML = "";
+  state.forEach((_, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn";
+    btn.id = `nav-btn-${idx}`;
+    btn.innerText = idx + 1;
+    btn.onclick = () => jumpToQuestion(idx);
+    container.appendChild(btn);
+  });
+}
+
+function updateNavGridAndStats() {
+  let correctCount = 0;
+  let wrongCount = 0;
+
+  state.forEach((s, idx) => {
+    const btn = document.getElementById(`nav-btn-${idx}`);
+    if (!btn) return;
+    btn.className = "nav-btn";
+    if (idx === currentIndex) btn.classList.add("active");
+    if (s.answered) {
+      if (s.isCorrect) {
+        btn.classList.add("correct");
+        correctCount++;
+      } else {
+        btn.classList.add("wrong");
+        wrongCount++;
+      }
+    }
+  });
+
+  const leftCount = state.length - (correctCount + wrongCount);
+  document.getElementById("stat-correct").innerText = correctCount;
+  document.getElementById("stat-wrong").innerText = wrongCount;
+  document.getElementById("stat-left").innerText = leftCount;
+  document.getElementById("score-counter").innerText = `Правильно: ${correctCount}`;
+}
+
+function loadQuestion(idx) {
+  currentIndex = idx;
+  const item = state[currentIndex];
+
+  document.getElementById("q-counter").innerText = `Питання ${currentIndex + 1} / ${state.length}`;
+  document.getElementById("progress").style.width = `${((currentIndex + 1) / state.length) * 100}%`;
+
+  const qBox = document.getElementById("q-box");
+  qBox.innerHTML = item.q;
+  if (item.answered || item.hintShown) {
+    qBox.classList.add("show-markers");
+  } else {
+    qBox.classList.remove("show-markers");
+  }
+
+  const container = document.getElementById("opt-container");
+  container.innerHTML = "";
+
+  item.options.forEach((optStr) => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.innerText = optStr;
+
+    if (item.answered) {
+      btn.disabled = true;
+      if (optStr === item.correctStr) btn.classList.add("correct");
+      if (optStr === item.selectedStr && !item.isCorrect) btn.classList.add("wrong");
+    } else {
+      btn.onclick = () => selectAnswer(optStr);
+    }
+    container.appendChild(btn);
+  });
+
+  const reviewBox = document.getElementById("review-box");
+  if (item.answered) {
+    document.getElementById("trans-text").innerText = item.trans;
+    document.getElementById("clue-text").innerText = item.clue;
+    document.getElementById("expl-text").innerText = item.expl;
+    reviewBox.className = "review-box " + (item.isCorrect ? "correct-border" : "wrong-border");
+    reviewBox.style.display = "block";
+  } else {
+    reviewBox.style.display = "none";
+  }
+
+  document.getElementById("prev-btn").disabled = (currentIndex === 0);
+  document.getElementById("next-btn").disabled = (currentIndex === state.length - 1);
+  updateNavGridAndStats();
+}
+
+function selectAnswer(optStr) {
+  const item = state[currentIndex];
+  item.answered = true;
+  item.selectedStr = optStr;
+  item.isCorrect = (optStr === item.correctStr);
+
+  saveState();
+  loadQuestion(currentIndex);
+}
+
+function toggleHint() {
+  state[currentIndex].hintShown = true;
+  saveState();
+  document.getElementById("q-box").classList.add("show-markers");
+}
+
+function prevQuestion() {
+  if (currentIndex > 0) loadQuestion(currentIndex - 1);
+}
+
+function nextQuestion() {
+  if (currentIndex < state.length - 1) loadQuestion(currentIndex + 1);
+}
+
+function jumpToQuestion(idx) {
+  loadQuestion(idx);
+}
+
+function confirmReset() {
+  if (confirm("Ви дійсно хочете скинути всі відповіді, лічильники та заново перемішати варіанти?")) {
+    localStorage.removeItem(STORAGE_KEY);
+    loadInitialState();
+    initNavGrid();
+    loadQuestion(0);
+  }
+}
+
+loadInitialState();
+initNavGrid();
+loadQuestion(0);
+</script>
+</body>
+</html>

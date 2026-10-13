@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажер: Категорія 2 (47 питань - Граматика та колокації v2)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b1120;
+      color: #f8fafc;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .layout {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      max-width: 1100px;
+      width: 100%;
+      align-items: flex-start;
+    }
+    .sidebar {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      width: 260px;
+      flex-shrink: 0;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .grid::-webkit-scrollbar {
+      width: 5px;
+    }
+    .grid::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .nav-btn {
+      background: #334155;
+      color: #cbd5e1;
+      border: 2px solid transparent;
+      padding: 8px 0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: #475569; }
+    .nav-btn.active { border-color: #38bdf8 !important; transform: scale(1.05); }
+    .nav-btn.correct { background: #166534 !important; color: #ffffff !important; }
+    .nav-btn.wrong { background: #991b1b !important; color: #ffffff !important; }
+
+    .sidebar-stats {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #334155;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-row { display: flex; justify-content: space-between; }
+    .stat-val-green { color: #4ade80; font-weight: 600; }
+    .stat-val-red { color: #f87171; font-weight: 600; }
+    .stat-val-blue { color: #38bdf8; font-weight: 600; }
+
+    .reset-btn {
+      width: 100%;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.2s;
+    }
+    .reset-btn:hover { background: #b91c1c; }
+
+    .main-card {
+      background: #1e293b;
+      border-radius: 14px;
+      flex-grow: 1;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #3b82f6;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .question-box {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+      background: #0f172a;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .marker {
+      background: transparent;
+      color: inherit;
+      transition: all 0.3s;
+    }
+    .show-markers .marker {
+      background: #facc15 !important;
+      color: #0f172a !important;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .btn {
+      background: #334155;
+      border: 2px solid transparent;
+      color: #f8fafc;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover:not(:disabled) { background: #475569; }
+    .btn.correct {
+      background: #166534 !important;
+      border-color: #22c55e !important;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .btn.wrong {
+      background: #991b1b !important;
+      border-color: #ef4444 !important;
+      color: #ffffff;
+    }
+    .review-box {
+      display: none;
+      background: #091224;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 15px;
+      font-size: 14.5px;
+      line-height: 1.5;
+    }
+    .review-box.correct-border { border-left-color: #22c55e; }
+    .review-box.wrong-border { border-left-color: #ef4444; }
+    .review-item { margin-bottom: 8px; }
+    .review-item strong { color: #38bdf8; }
+
+    .control-panel {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .nav-arrow-btn {
+      flex: 1;
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nav-arrow-btn:hover:not(:disabled) { background: #475569; }
+    .nav-arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .hint-btn {
+      background: #854d0e;
+      color: #fef08a;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hint-btn:hover { background: #a16207; }
+
+    @media (max-width: 820px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; }
+      .grid { grid-template-columns: repeat(8, 1fr); max-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">Питання (1 - 47)</div>
+    <div class="grid" id="nav-grid"></div>
+    
+    <div class="sidebar-stats">
+      <div class="stat-row"><span>Правильно:</span> <span class="stat-val-green" id="stat-correct">0</span></div>
+      <div class="stat-row"><span>Помилок:</span> <span class="stat-val-red" id="stat-wrong">0</span></div>
+      <div class="stat-row"><span>Залишилось:</span> <span class="stat-val-blue" id="stat-left">47</span></div>
+    </div>
+    
+    <button class="reset-btn" onclick="confirmReset()">Скинути весь прогрес</button>
+  </div>
+
+  <div class="main-card" id="app">
+    <div class="header">
+      <span id="q-counter">Питання 1 / 47</span>
+      <span id="score-counter">Правильно: 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    
+    <div class="question-box" id="q-box"></div>
+    <div class="options" id="opt-container"></div>
+    
+    <div class="review-box" id="review-box">
+      <div class="review-item"><strong>Переклад:</strong> <span id="trans-text"></span></div>
+      <div class="review-item"><strong>Ключовий маркер:</strong> <span id="clue-text"></span></div>
+      <div class="review-item"><strong>Пояснення:</strong> <span id="expl-text"></span></div>
+    </div>
+    
+    <div class="control-panel">
+      <button class="nav-arrow-btn" id="prev-btn" onclick="prevQuestion()"><- Назад</button>
+      <button class="hint-btn" id="hint-btn" onclick="toggleHint()">Підказка</button>
+      <button class="nav-arrow-btn" id="next-btn" onclick="nextQuestion()">Наступне -></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const rawQuestions = [
+  {
+    q: "When our <span class='marker'>car _</span> I knew we would <span class='marker'>miss our flight</span>.",
+    trans: "Коли наша машина зламалася, я знав, що ми запізнимося на літак.",
+    clue: "car broke down (автомобіль поламався)",
+    expl: "Фразове дієслово break down означає вийти з ладу або поламатися (про авто чи техніку).",
+    options: ["dropped off", "broke down", "held on"],
+    correct: "broke down"
+  },
+  {
+    q: "They decided to organize a <span class='marker'>three-day _</span> in Singapore to help them deal with <span class='marker'>jet lag on the long trip</span> to Australia.",
+    trans: "Вони вирішили зробити триденну пересадку (зупинку) в Сінгапурі, щоб легше перенести зміну поясів під час довгої поїздки.",
+    clue: "three-day stopover (зупинка під час перельоту)",
+    expl: "Stopover: коротка проміжна зупинка між авіарейсами у тривалій подорожі.",
+    options: ["scenic", "lush", "stopover", "remote"],
+    correct: "stopover"
+  },
+  {
+    q: "After spotting a <span class='marker'>gap in the ________</span>, the company developed a new product to fill it.",
+    trans: "Помітивши вільну нішу на ринку, компанія розробила новий продукт, щоб її заповнити.",
+    clue: "gap in the market (незаповнена ринкова ніша)",
+    expl: "Стійка бізнес-ідіома: a gap in the market (вільний сегмент або незадоволений попит на ринку).",
+    options: ["demand", "market", "boom"],
+    correct: "market"
+  },
+  {
+    q: "How <span class='marker'>______________________________ can be stored</span> by means of this system?",
+    trans: "Скільки інформації можна зберігати за допомогою цієї системи?",
+    clue: "much information (незлічуваний іменник без закінчення -s)",
+    expl: "Слово information незлічуване: воно не має форми множини і вимагає much замість many.",
+    options: ["much information", "much informations", "many information", "many informations"],
+    correct: "much information"
+  },
+  {
+    q: "<span class='marker'>corporate _____</span>",
+    trans: "Корпоративна культура.",
+    clue: "corporate culture (цінності та норми всередині компанії)",
+    expl: "Corporate culture: усталена бізнес-колокація для позначення культури компанії.",
+    options: ["relations", "culture", "salary", "wages"],
+    correct: "culture"
+  },
+  {
+    q: "I was <span class='marker'>____ the grass</span> in the garden.",
+    trans: "Мене змусили косити траву в саду.",
+    clue: "was made to cut (пасивний стан дієслова make вимагає частку to)",
+    expl: "У пасивному стані після make інфінітив обов'язково вживається з часткою to: to be made to do sth.",
+    options: ["made to cut", "made into cutting", "made cutting", "made cut", "made to cutting"],
+    correct: "made to cut"
+  },
+  {
+    q: "Managers <span class='marker'>___ the _____</span> of their staff to see whether they are <span class='marker'>reaching their targets</span>.",
+    trans: "Менеджери оцінюють продуктивність свого персоналу, щоб перевірити, чи досягають вони поставлених цілей.",
+    clue: "measure performance (оцінювати продуктивність праці)",
+    expl: "Measure performance: ключова колокація менеджменту для вимірювання результатів роботи.",
+    options: ["measure, performance", "perform, decisions", "deal with, crises", "set, objectives"],
+    correct: "measure, performance"
+  },
+  {
+    q: "Top managers have to be prepared to <span class='marker'>____ ______</span>.",
+    trans: "Топ-менеджери повинні бути готові долати кризи.",
+    clue: "deal with crises (долати кризові явища)",
+    expl: "Стійка управлінська колокація: deal with crises (слово crises є множиною від crisis).",
+    options: ["task tasks", "deal with decisions", "deal with crises", "set decision"],
+    correct: "deal with crises"
+  },
+  {
+    q: "Although many of the beaches <span class='marker'>were crowded</span>, we <span class='marker'>______ to find</span> one which was more secluded and almost deserted.",
+    trans: "Хоча багато пляжів були переповнені, нам вдалося знайти затишніший і майже безлюдний пляж.",
+    clue: "managed to find (узгодження минулого часу з were crowded)",
+    expl: "Події відбувалися в минулому (were crowded), тому потрібна форма Past Simple: managed to find.",
+    options: ["managed", "manage", "have managed", "were managed"],
+    correct: "managed"
+  },
+  {
+    q: "<span class='marker'>out-___-work</span> activities",
+    trans: "Діяльність або захоплення у позаробочий час.",
+    clue: "out-of-work (поза роботою)",
+    expl: "Стійкий вираз із прийменником of: out-of-work activities.",
+    options: ["of", "out", "in", "at"],
+    correct: "of"
+  },
+  {
+    q: "I was surprised to learn that <span class='marker'>staff _</span> can be quite an issue in the <span class='marker'>hospitality industry</span>.",
+    trans: "Я був здивований тим, що утримання персоналу є суттєвою проблемою в індустрії гостинності.",
+    clue: "staff retention (утримання працівників від звільнення)",
+    expl: "Staff retention: здатність організації зберігати своїх співробітників та знижувати плинність кадрів.",
+    options: ["margin", "economies", "reputation", "retention"],
+    correct: "retention"
+  },
+  {
+    q: "Although I tried phoning a few times, I wasn't able to <span class='marker'>______ to the airline</span>.",
+    trans: "Хоча я телефонував кілька разів, мені не вдалося додзвонитися до авіакомпанії.",
+    clue: "get through to (додзвонитися телефонною лінією)",
+    expl: "Фразове дієслово get through to sb означає успішно зв'язатися телефоном.",
+    options: ["get through", "fill in", "turn up"],
+    correct: "get through"
+  },
+  {
+    q: "My sister <span class='marker'>______ me ______</span> at the station.",
+    trans: "Сестра підвезла і висадила мене біля вокзалу.",
+    clue: "dropped me off (висадити пасажира з авто)",
+    expl: "Drop someone off означає довезти людину машиною до місця призначення та висадити.",
+    options: ["dropped ... off", "found ... out", "hung ... around"],
+    correct: "dropped ... off"
+  },
+  {
+    q: "Thank you so much for <span class='marker'>______ us ______ for the night</span>. It was lovely seeing you again.",
+    trans: "Щиро дякую, що прихистили нас на ніч. Було дуже приємно знову побачитися.",
+    clue: "putting us up (надати нічліг у себе вдома)",
+    expl: "Фразове дієслово put sb up означає надати комусь тимчасовий нічліг або притулок.",
+    options: ["putting ... up", "hanging ... around", "picking ... up"],
+    correct: "putting ... up"
+  },
+  {
+    q: "<span class='marker'>Only later ______</span> what I had done.",
+    trans: "Лише згодом я усвідомив, що накоїв.",
+    clue: "Only later did I realise (інверсія після обмежувального Only)",
+    expl: "Після конструкцій на кшталт Only later порядок слів змінюється на інверсійний: допоміжне did стоїть перед підметом I.",
+    options: ["have I realised", "I had realised", "had I realised", "I realised", "did I realise"],
+    correct: "did I realise"
+  },
+  {
+    q: "Look Benjamin! Can you see that plane? It <span class='marker'>______ take off</span>. How exciting!",
+    trans: "Поглянь, Бенджаміне! Бачиш той літак? Він ось-ось злетить. Як захоплююче!",
+    clue: "'s about to (дія відбудеться в наступні кілька секунд)",
+    expl: "To be about to do sth вказує на подію, яка станеться прямо зараз.",
+    options: ["'s about to", "will be about to", "should be about to", "was about to"],
+    correct: "'s about to"
+  },
+  {
+    q: "<span class='marker'>make ______</span>",
+    trans: "Приймати рішення.",
+    clue: "make decisions (класична ділова колокація)",
+    expl: "З іменником decisions вживається дієслово make (make decisions), а не do.",
+    options: ["decisions", "resources", "objectives", "crises"],
+    correct: "decisions"
+  },
+  {
+    q: "Managers <span class='marker'>______ the work</span> of their <span class='marker'>______</span> and try to develop their abilities.",
+    trans: "Менеджери контролюють роботу своїх підлеглих і намагаються розвивати їхні здібності.",
+    clue: "supervise subordinates (контролювати підлеглих)",
+    expl: "Supervise означає здійснювати нагляд і контроль, а subordinates: це підлеглі.",
+    options: ["supervise, subordinates", "set, performance", "set, objectives", "write, tasks"],
+    correct: "supervise, subordinates"
+  },
+  {
+    q: "He would do anything <span class='marker'>except ______</span> you his car.",
+    trans: "Він зробить усе, окрім як позичити тобі свою машину.",
+    clue: "except lend (інфінітив без to після except з do anything)",
+    expl: "Після виразів на зразок do anything except вживається голий інфінітив без частки to: lend.",
+    options: ["lending", "lend", "borrowing", "to lend", "to borrow"],
+    correct: "lend"
+  },
+  {
+    q: "Have you heard the forecast for today? They said to expect an overcast day with <span class='marker'>______ showers</span>.",
+    trans: "Ти чув прогноз на сьогодні? Сказали очікувати хмарний день із місцями короткочасними дощами.",
+    clue: "scattered showers (локальні/розрізнені дощі)",
+    expl: "Scattered showers: фіксований метеорологічний вираз для позначення короткочасних опадів місцями.",
+    options: ["scattered", "appeal", "lush", "margin"],
+    correct: "scattered"
+  },
+  {
+    q: "<span class='marker'>Neither Margaret nor John ______ to understand</span> my problems",
+    trans: "Ані Маргарет, ані Джон не здатні зрозуміти мої проблеми.",
+    clue: "Neither... nor John is able (однина, able з часткою to)",
+    expl: "При узгодженні Neither... nor дієслово орієнтується на найближчий підмет (John: однина -> is). Прикметник able вимагає частки to, тоді як capable вимагає of.",
+    options: ["is able", "are able", "are capable", "is capable"],
+    correct: "is able"
+  },
+  {
+    q: "They felt really <span class='marker'>______ on reaching the peak</span> of the mountain after a day of difficult climbing.",
+    trans: "Вони почувалися справді задоволеними, коли зійшли на вершину гори після важкого дня підйому.",
+    clue: "felt satisfied (почувалися задоволеними)",
+    expl: "Satisfied виражає стан людського задоволення досягнутим успіхом.",
+    options: ["scenic", "satisfied", "lush", "perishable"],
+    correct: "satisfied"
+  },
+  {
+    q: "a <span class='marker'>______-sharing</span> programme",
+    trans: "Програма участі працівників у прибутках підприємства.",
+    clue: "profit-sharing programme (розподіл частини прибутку)",
+    expl: "Profit-sharing: управлінська система преміювання персоналу часткою від прибутку фірми.",
+    options: ["loss", "low", "profit", "high"],
+    correct: "profit"
+  },
+  {
+    q: "The night manager explained to the guests that the hotel entrance doors <span class='marker'>______ at 12 a.m. every night</span>.",
+    trans: "Нічний менеджер пояснив гостям, що вхідні двері готелю зачиняються щоночі опівночі.",
+    clue: "every night (постійний факт за розкладом -> Present Simple Passive: are locked)",
+    expl: "Оскільки речення виражає постійний графік та регулярну дію (every night), узгодження часів не вимагає переходу в минулий час: вживається are locked.",
+    options: ["have been locked", "had been locked", "are locked", "are being locked"],
+    correct: "are locked"
+  },
+  {
+    q: "<span class='marker'>By the time they ______</span> it was far too late to go out for a meal so everyone headed home.",
+    trans: "На той час, як вони закінчили зміну, було вже надто пізно йти вечеряти, тому всі пішли додому.",
+    clue: "By the time they had gone off duty (дія відбулася раніше іншого минулого моменту)",
+    expl: "Зворот By the time у минулому контексті вимагає Past Perfect (had gone off duty), підкреслюючи передування дії.",
+    options: ["have gone off duty", "are going off duty", "had gone off duty", "go off duty"],
+    correct: "had gone off duty"
+  },
+  {
+    q: "<span class='marker'>allocate __________</span>",
+    trans: "Розподіляти ресурси.",
+    clue: "allocate resources (ключовий процес у менеджменті)",
+    expl: "Стійка комбінація: allocate resources (розподіляти фінансові чи матеріальні активи).",
+    options: ["resources", "crises", "decisions", "tasks"],
+    correct: "resources"
+  },
+  {
+    q: "I shall be looking forward <span class='marker'>___________</span> from you.",
+    trans: "Я з нетерпінням чекатиму звістки від вас.",
+    clue: "looking forward to hearing (to як прийменник + V-ing)",
+    expl: "У звороті look forward to слово to є прийменником, тому після нього вживається герундій: to hearing.",
+    options: ["for hearing", "at hearing", "to hearing", "to hear", "towards hearing"],
+    correct: "to hearing"
+  },
+  {
+    q: "One problem you face when dealing with <span class='marker'>_ goods</span>, is that they often have a <span class='marker'>short shelf life</span>.",
+    trans: "Проблема роботи зі швидкопсувними товарами полягає в тому, що вони мають короткий термін придатності.",
+    clue: "perishable goods, short shelf life (швидкопсувні товари)",
+    expl: "Perishable goods: термін для позначення продуктів або товарів, що швидко псуються.",
+    options: ["perishable", "lash", "lush", "scenic"],
+    correct: "perishable"
+  },
+  {
+    q: "Managers have to find the best way to <span class='marker'>______________</span> all the human, physical and capital <span class='marker'>________</span> available to them.",
+    trans: "Менеджери повинні знайти найкращий спосіб розподілити всі наявні людські, матеріальні та фінансові ресурси.",
+    clue: "allocate resources (розподіл ресурсів)",
+    expl: "Класичне визначення функції керівника: allocate human, physical and capital resources.",
+    options: ["make, decisions", "measure, performance", "set, tasks", "allocate, resources"],
+    correct: "allocate, resources"
+  },
+  {
+    q: "A lot of people are not <span class='marker'>used ______ grammar</span> even in their native language.",
+    trans: "Багато людей не звикли вивчати граматику навіть рідною мовою.",
+    clue: "used to studying (конструкція be used to + V-ing)",
+    expl: "Бути звичним до чогось: to be used to + V-ing (звиклий до процесу вивчення).",
+    options: ["to study", "to the study", "to studying", "to the studying of"],
+    correct: "to studying"
+  },
+  {
+    q: "After an organization has <span class='marker'>______</span> it has to make sure that it <span class='marker'>achieves them</span>",
+    trans: "Після того як організація встановила цілі, вона має забезпечити їхнє досягнення.",
+    clue: "set objectives -> achieves them (встановити цілі)",
+    expl: "Слово them вказує на множину: set objectives (поставити цілі, а потім досягти їх).",
+    options: ["set objectives", "work with crises", "set resources", "perform tasks"],
+    correct: "set objectives"
+  },
+  {
+    q: "attitudes <span class='marker'>______ work</span>",
+    trans: "Ставлення до роботи.",
+    clue: "attitude to work (прийменник to)",
+    expl: "Іменник attitude вимагає прийменника to або towards: attitude to work.",
+    options: ["about", "at", "to", "up"],
+    correct: "to"
+  },
+  {
+    q: "Do you really believe that John is <span class='marker'>______ a man</span>?",
+    trans: "Ти справді вважаєш, що Джон здатен убити людину?",
+    clue: "capable of killing (прикметник capable вимагає of + V-ing)",
+    expl: "Конструкція: capable of doing sth. Форма able вимагає частки to (able to kill).",
+    options: ["capable of killing", "able of killing", "capable to kill", "capable for killing", "able for killing"],
+    correct: "capable of killing"
+  },
+  {
+    q: "<span class='marker'>Everobody is happy, ______</span> ?",
+    trans: "Усі щасливі, чи не так?",
+    clue: "aren't they (займенник everybody замінюється на they у хвостику)",
+    expl: "У розділових питаннях неозначений займенник Everybody перетворюється на they, а з they дієслово набуває форми aren't they.",
+    options: ["is he", "are they", "aren't they", "isn't he"],
+    correct: "aren't they"
+  },
+  {
+    q: "<span class='marker'>Everybody wants to emigrate, ______</span> ?",
+    trans: "Усі хочуть емігрувати, чи не так?",
+    clue: "don't they (хвостик до Everybody узгоджується з they у Present Simple)",
+    expl: "Everybody формує хвостик через they. Для ствердження в теперішньому часі запереченням буде don't they.",
+    options: ["doesn't he", "don't they", "does he", "do they", "doesn't one"],
+    correct: "don't they"
+  },
+  {
+    q: "<span class='marker'>I suppose it's time we called it a day, ______</span> ?",
+    trans: "Здається, час закруглятися на сьогодні, чи не так?",
+    clue: "isn't it (питання формується до звороту it's time)",
+    expl: "З ввідним виразом I suppose хвостик будується до основного твердження it is time: isn't it.",
+    options: ["is it", "don't I", "did we", "isn't it", "didn't we"],
+    correct: "isn't it"
+  },
+  {
+    q: "It takes <span class='marker'>______ to learn</span> a foreign language",
+    trans: "Потрібно багато часу, щоб вивчити іноземну мову.",
+    clue: "takes a long time (стійкий зворот з артиклем a)",
+    expl: "Стала часова конструкція: it takes a long time to do sth.",
+    options: ["long time", "a long time", "long", "along"],
+    correct: "a long time"
+  },
+  {
+    q: "<span class='marker'>labour ______</span>",
+    trans: "Трудові відносини.",
+    clue: "labour relations (взаємини робітників і керівництва)",
+    expl: "Labour relations: офіційний термін для позначення трудових правовідносин.",
+    options: ["wages", "relations", "security", "rotation"],
+    correct: "relations"
+  },
+  {
+    q: "<span class='marker'>Let's go for a walk, ______</span> ?",
+    trans: "Ходімо на прогулянку, добре?",
+    clue: "Let's ... shall we (фіксована норма для спонукання)",
+    expl: "Після заклику до спільної дії з Let's завжди використовується хвостик shall we.",
+    options: ["shall we", "may we", "should we", "will we", "don't we"],
+    correct: "shall we"
+  },
+  {
+    q: "<span class='marker'>measure ______</span>",
+    trans: "Оцінювати результативність роботи.",
+    clue: "measure performance (вимірювати ефективність)",
+    expl: "Стале словосполучення в управлінні: measure performance.",
+    options: ["decisions", "performance", "tasks", "crises"],
+    correct: "performance"
+  },
+  {
+    q: "<span class='marker'>Never ______</span> such a beautiful girl!",
+    trans: "Ніколи в житті я не бачив такої вродливої дівчини!",
+    clue: "Never have I seen (граматична інверсія після Never)",
+    expl: "Якщо речення починається із заперечного Never, застосовується інверсія: допоміжне have виноситься перед підметом I.",
+    options: ["have I seen", "saw I", "had I seen", "I did see", "I have seen"],
+    correct: "have I seen"
+  },
+  {
+    q: "Our latest promotion has been well received and in the last month alone, <span class='marker'>sales ______ dramatically</span>.",
+    trans: "Наша остання промо-кампанія пройшла успішно, і лише за останній місяць продажі суттєво зросли.",
+    clue: "sales have increased (зв'язок із теперішнім часом через Present Perfect)",
+    expl: "Контекст вказує на поточний актуальний результат недавньої події: has been well received -> sales have increased.",
+    options: ["have increased", "increases", "had increased", "increased"],
+    correct: "have increased"
+  },
+  {
+    q: "She was <span class='marker'>______ everyone liked her</span>.",
+    trans: "Вона була настільки чарівною, що подобалася всім.",
+    clue: "so charming that (конструкція so + прикметник + that)",
+    expl: "Правильна модель: so charming that (якби був іменник lady, було б such a charming lady that).",
+    options: ["such charming a lady that", "very charming lady and", "so charming lady that", "so charming that", "such charming lady that"],
+    correct: "so charming that"
+  },
+  {
+    q: "Some people <span class='marker'>______ better on their own</span> while others work better in teams.",
+    trans: "Деякі люди краще вирішують кризи самостійно, тоді як інші краще працюють у команді.",
+    clue: "deal with crises (узгодження форми множини Some people)",
+    expl: "Варіант performs tasks має граматичну помилку в узгодженні (закінчення -s для підмета множини Some people неприпустиме). Тому правильний вибір: deal with crises.",
+    options: ["performs tasks", "set objectives", "deal with crises", "do decisions"],
+    correct: "deal with crises"
+  },
+  {
+    q: "<span class='marker'>trade ______</span>",
+    trans: "Профспілки.",
+    clue: "trade unions (професійні спілки робітників)",
+    expl: "Trade unions: усталений термін для організацій захисту прав працівників.",
+    options: ["unions", "security", "culture", "wages"],
+    correct: "unions"
+  },
+  {
+    q: "We were <span class='marker'>______ for over an hour</span> at customs.",
+    trans: "Нас затримали більше ніж на годину на митниці.",
+    clue: "held up (бути затриманим у дорозі або на контролі)",
+    expl: "Фразове дієслово hold up у формі пасиву (be held up) означає вимушено затриматися.",
+    options: ["taken off", "held up", "found out"],
+    correct: "held up"
+  },
+  {
+    q: "We <span class='marker'>______ be late</span> for breakfast if you aren't ready soon. They stop serving in ten minutes.",
+    trans: "Ми запізнимося на сніданок, якщо ти незабаром не зберешся. Його припиняють подавати за десять хвилин.",
+    clue: "We shall be late (традиційна британська граматична форма для We)",
+    expl: "За класичною британською нормою для займенників I та We допоміжним дієсловом майбутнього часу є shall: We shall be late.",
+    options: ["must", "shall", "can", "shall not"],
+    correct: "shall"
+  }
+];
+
+const STORAGE_KEY = "category2_grammar_v2";
+
+function shuffleArray(arr) {
+  const newArr = [...arr];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
+let state = [];
+let currentIndex = 0;
+
+function loadInitialState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      state = JSON.parse(saved);
+      if (state.length === rawQuestions.length) return;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  state = rawQuestions.map((item, idx) => ({
+    id: idx,
+    q: item.q,
+    trans: item.trans,
+    clue: item.clue,
+    expl: item.expl,
+    options: shuffleArray(item.options),
+    correctStr: item.correct,
+    answered: false,
+    selectedStr: null,
+    isCorrect: false,
+    hintShown: false
+  }));
+  saveState();
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function initNavGrid() {
+  const container = document.getElementById("nav-grid");
+  container.innerHTML = "";
+  state.forEach((_, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn";
+    btn.id = `nav-btn-${idx}`;
+    btn.innerText = idx + 1;
+    btn.onclick = () => jumpToQuestion(idx);
+    container.appendChild(btn);
+  });
+}
+
+function updateNavGridAndStats() {
+  let correctCount = 0;
+  let wrongCount = 0;
+
+  state.forEach((s, idx) => {
+    const btn = document.getElementById(`nav-btn-${idx}`);
+    if (!btn) return;
+    btn.className = "nav-btn";
+    if (idx === currentIndex) btn.classList.add("active");
+    if (s.answered) {
+      if (s.isCorrect) {
+        btn.classList.add("correct");
+        correctCount++;
+      } else {
+        btn.classList.add("wrong");
+        wrongCount++;
+      }
+    }
+  });
+
+  const leftCount = state.length - (correctCount + wrongCount);
+  document.getElementById("stat-correct").innerText = correctCount;
+  document.getElementById("stat-wrong").innerText = wrongCount;
+  document.getElementById("stat-left").innerText = leftCount;
+  document.getElementById("score-counter").innerText = `Правильно: ${correctCount}`;
+}
+
+function loadQuestion(idx) {
+  currentIndex = idx;
+  const item = state[currentIndex];
+
+  document.getElementById("q-counter").innerText = `Питання ${currentIndex + 1} / ${state.length}`;
+  document.getElementById("progress").style.width = `${((currentIndex + 1) / state.length) * 100}%`;
+
+  const qBox = document.getElementById("q-box");
+  qBox.innerHTML = item.q;
+  if (item.answered || item.hintShown) {
+    qBox.classList.add("show-markers");
+  } else {
+    qBox.classList.remove("show-markers");
+  }
+
+  const container = document.getElementById("opt-container");
+  container.innerHTML = "";
+
+  item.options.forEach((optStr) => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.innerText = optStr;
+
+    if (item.answered) {
+      btn.disabled = true;
+      if (optStr === item.correctStr) btn.classList.add("correct");
+      if (optStr === item.selectedStr && !item.isCorrect) btn.classList.add("wrong");
+    } else {
+      btn.onclick = () => selectAnswer(optStr);
+    }
+    container.appendChild(btn);
+  });
+
+  const reviewBox = document.getElementById("review-box");
+  if (item.answered) {
+    document.getElementById("trans-text").innerText = item.trans;
+    document.getElementById("clue-text").innerText = item.clue;
+    document.getElementById("expl-text").innerText = item.expl;
+    reviewBox.className = "review-box " + (item.isCorrect ? "correct-border" : "wrong-border");
+    reviewBox.style.display = "block";
+  } else {
+    reviewBox.style.display = "none";
+  }
+
+  document.getElementById("prev-btn").disabled = (currentIndex === 0);
+  document.getElementById("next-btn").disabled = (currentIndex === state.length - 1);
+  updateNavGridAndStats();
+}
+
+function selectAnswer(optStr) {
+  const item = state[currentIndex];
+  item.answered = true;
+  item.selectedStr = optStr;
+  item.isCorrect = (optStr === item.correctStr);
+
+  saveState();
+  loadQuestion(currentIndex);
+}
+
+function toggleHint() {
+  state[currentIndex].hintShown = true;
+  saveState();
+  document.getElementById("q-box").classList.add("show-markers");
+}
+
+function prevQuestion() {
+  if (currentIndex > 0) loadQuestion(currentIndex - 1);
+}
+
+function nextQuestion() {
+  if (currentIndex < state.length - 1) loadQuestion(currentIndex + 1);
+}
+
+function jumpToQuestion(idx) {
+  loadQuestion(idx);
+}
+
+function confirmReset() {
+  if (confirm("Ви дійсно хочете скинути всі відповіді, лічильники та заново перемішати варіанти?")) {
+    localStorage.removeItem(STORAGE_KEY);
+    loadInitialState();
+    initNavGrid();
+    loadQuestion(0);
+  }
+}
+
+loadInitialState();
+initNavGrid();
+loadQuestion(0);
+</script>
+</body>
+</html>

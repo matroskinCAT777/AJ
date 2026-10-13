@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренажер: Категорія 4 (19 питань - Комерційне право v2)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b1120;
+      color: #f8fafc;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .layout {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      max-width: 1100px;
+      width: 100%;
+      align-items: flex-start;
+    }
+    .sidebar {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      width: 260px;
+      flex-shrink: 0;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .grid::-webkit-scrollbar {
+      width: 5px;
+    }
+    .grid::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .nav-btn {
+      background: #334155;
+      color: #cbd5e1;
+      border: 2px solid transparent;
+      padding: 8px 0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: #475569; }
+    .nav-btn.active { border-color: #38bdf8 !important; transform: scale(1.05); }
+    .nav-btn.correct { background: #166534 !important; color: #ffffff !important; }
+    .nav-btn.wrong { background: #991b1b !important; color: #ffffff !important; }
+
+    .sidebar-stats {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #334155;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-row { display: flex; justify-content: space-between; }
+    .stat-val-green { color: #4ade80; font-weight: 600; }
+    .stat-val-red { color: #f87171; font-weight: 600; }
+    .stat-val-blue { color: #38bdf8; font-weight: 600; }
+
+    .reset-btn {
+      width: 100%;
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.2s;
+    }
+    .reset-btn:hover { background: #b91c1c; }
+
+    .main-card {
+      background: #1e293b;
+      border-radius: 14px;
+      flex-grow: 1;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #334155;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #3b82f6;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .question-box {
+      font-size: 17.5px;
+      font-weight: 600;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+      background: #0f172a;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+    .marker {
+      background: transparent;
+      color: inherit;
+      transition: all 0.3s;
+    }
+    .show-markers .marker {
+      background: #facc15 !important;
+      color: #0f172a !important;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .btn {
+      background: #334155;
+      border: 2px solid transparent;
+      color: #f8fafc;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover:not(:disabled) { background: #475569; }
+    .btn.correct {
+      background: #166534 !important;
+      border-color: #22c55e !important;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .btn.wrong {
+      background: #991b1b !important;
+      border-color: #ef4444 !important;
+      color: #ffffff;
+    }
+    .review-box {
+      display: none;
+      background: #091224;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 15px;
+      font-size: 14.5px;
+      line-height: 1.5;
+    }
+    .review-box.correct-border { border-left-color: #22c55e; }
+    .review-box.wrong-border { border-left-color: #ef4444; }
+    .review-item { margin-bottom: 8px; }
+    .review-item strong { color: #38bdf8; }
+
+    .control-panel {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .nav-arrow-btn {
+      flex: 1;
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nav-arrow-btn:hover:not(:disabled) { background: #475569; }
+    .nav-arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .hint-btn {
+      background: #854d0e;
+      color: #fef08a;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hint-btn:hover { background: #a16207; }
+
+    @media (max-width: 820px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; }
+      .grid { grid-template-columns: repeat(5, 1fr); max-height: 200px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">Питання (1 - 19)</div>
+    <div class="grid" id="nav-grid"></div>
+    
+    <div class="sidebar-stats">
+      <div class="stat-row"><span>Правильно:</span> <span class="stat-val-green" id="stat-correct">0</span></div>
+      <div class="stat-row"><span>Помилок:</span> <span class="stat-val-red" id="stat-wrong">0</span></div>
+      <div class="stat-row"><span>Залишилось:</span> <span class="stat-val-blue" id="stat-left">19</span></div>
+    </div>
+    
+    <button class="reset-btn" onclick="confirmReset()">Скинути весь прогрес</button>
+  </div>
+
+  <div class="main-card" id="app">
+    <div class="header">
+      <span id="q-counter">Питання 1 / 19</span>
+      <span id="score-counter">Правильно: 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    
+    <div class="question-box" id="q-box"></div>
+    <div class="options" id="opt-container"></div>
+    
+    <div class="review-box" id="review-box">
+      <div class="review-item"><strong>Переклад:</strong> <span id="trans-text"></span></div>
+      <div class="review-item"><strong>Ключовий маркер:</strong> <span id="clue-text"></span></div>
+      <div class="review-item"><strong>Пояснення:</strong> <span id="expl-text"></span></div>
+    </div>
+    
+    <div class="control-panel">
+      <button class="nav-arrow-btn" id="prev-btn" onclick="prevQuestion()"><- Назад</button>
+      <button class="hint-btn" id="hint-btn" onclick="toggleHint()">Підказка</button>
+      <button class="nav-arrow-btn" id="next-btn" onclick="nextQuestion()">Наступне -></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const rawQuestions = [
+  {
+    q: "Commercial law <span class='marker'>___________________ within its compass</span> such titles as principal and agent; carriage by land and sea; merchant shipping; <span class='marker'>______________</span>; marine, fire, life, and accident insurance; bills of exchange, negotiable instruments, <span class='marker'>______________ and partnership</span>.",
+    trans: "Комерційне право включає у свою сферу такі розділи, як доручення та представництво, перевезення, торговельне мореплавство, контракти, страхування, цінні папери, гарантії та партнерство.",
+    clue: "includes within its compass, contracts, guarantees",
+    expl: "Присудок третьої особи однини: includes. У переліку використовуються іменники у формі множини: contracts та guarantees.",
+    options: [
+      "includes - guarantee - contracts",
+      "includes - contracts - guarantees",
+      "guarantees - contracts - includes",
+      "contracts - includes - guarantees"
+    ],
+    correct: "includes - contracts - guarantees"
+  },
+  {
+    q: "In other words, commercial laws <span class='marker'>______ the proper development</span> of economic activity and establishes the framework for <span class='marker'>______ by public authorities</span> if necessary, as in the case of consumer protection. The financial system, in particular, is <span class='marker'>heavily ______</span>, given the huge sums of money it mobilizes.",
+    trans: "Іншими словами, комерційні закони забезпечують належний розвиток економічної діяльності та встановлюють основу для втручання державних органів у разі потреби. Фінансова система особливо суворо захищена.",
+    clue: "ensure the proper development, intervention by public authorities, heavily guarded",
+    expl: "Ensure (забезпечувати), intervention (державне втручання), heavily guarded (надійно захищена/контрольована).",
+    options: [
+      "ensures - guarded - intervention",
+      "intervent - guarded - ensures",
+      "guarde - ensures - intervention",
+      "ensure - intervention - guarded"
+    ],
+    correct: "ensure - intervention - guarded"
+  },
+  {
+    q: "It is an area of law that can be very challenging, however, offers almost <span class='marker'>unlimited ______</span> if you put in the time and effort into a career in the <span class='marker'>______ area</span>. A more literal definition for commercial law can also be given that it is a <span class='marker'>______ of law</span> that governs business and commercial transactions",
+    trans: "Це галузь права, яка може бути складною, проте пропонує майже необмежені винагороди за кар'єру в юридичній сфері. Більш буквальне визначення: це сукупність норм права, що регулює бізнес.",
+    clue: "unlimited rewards, legal area, body of law",
+    expl: "Unlimited rewards (необмежені винагороди), legal area (юридична галузь), body of law (сукупність/звід законів).",
+    options: [
+      "bodies - rewards - legal",
+      "rewards - legal - body",
+      "rewards - body - legal",
+      "legality - body - rewards"
+    ],
+    correct: "rewards - legal - body"
+  },
+  {
+    q: "Commerce affects all of us, and the need for competent <span class='marker'>______ law</span> and commercial law professionals is higher than ever. Everyone is involved in <span class='marker'>______</span> in one way or another so if you're hoping for a career in commercial contract law, you could see a very successful and lucrative <span class='marker'>______ path</span> ahead of you",
+    trans: "Комерція впливає на всіх нас, і потреба у фахівцях з договірного та комерційного права вища, ніж будь-коли. Кожен залучений у торгівлю, тож на вас чекає успішний кар'єрний шлях.",
+    clue: "contract law, involved in commerce, career path",
+    expl: "Contract law (договірне право), involved in commerce (залучені до комерції), career path (кар'єрний шлях).",
+    options: [
+      "career - contract - commerce",
+      "commerce - careers - contract",
+      "contract - careers - commerce",
+      "contract - commerce - career"
+    ],
+    correct: "contract - commerce - career"
+  },
+  {
+    q: "Commercial lawyers handle a broad range of <span class='marker'>______ deals</span>. Clients of the firm include banks, insurance companies, <span class='marker'>______ funds</span>, private equity funds, <span class='marker'>______ companies</span>, governments and governmental agencies.",
+    trans: "Юристи з комерційного права ведуть широкий спектр корпоративних угод. До клієнтів належать банки, страхові компанії, хедж-фонди, фонди прямих інвестицій, компанії з нерухомості та уряди.",
+    clue: "corporate deals, hedge funds, property companies",
+    expl: "Corporate deals (корпоративні угоди), hedge funds (хедж-фонди), property companies (компанії нерухомості).",
+    options: [
+      "property - corporate - hedge",
+      "corporate - property - hedged",
+      "hedge - property - corporate",
+      "corporate - hedge - property"
+    ],
+    correct: "corporate - hedge - property"
+  },
+  {
+    q: "Why is commercial law important? Commercial law effectively <span class='marker'>______ trade</span> between businesses and consumers. It <span class='marker'>______ a regulated system</span> that is fair for both parties so that trade can be <span class='marker'>______ in a reasonable manner</span>",
+    trans: "Чому важливе комерційне право? Воно регулює торгівлю між бізнесом та споживачами, створює врегульовану систему, щоб торгівля могла вестися належним чином.",
+    clue: "governs trade, creates a regulated system, trade can be conducted",
+    expl: "Governs (регулює), creates (створює), conducted (проводитися/здійснюватися у пасивному стані).",
+    options: [
+      "conducted - governs - created",
+      "creates - conducted - governed",
+      "governs - conducted - created",
+      "governs - creates - conducted"
+    ],
+    correct: "governs - creates - conducted"
+  },
+  {
+    q: "The average Corporate lawyer <span class='marker'>______ in London</span> is £92,577. This is 29.8% more than the <span class='marker'>______ national salary</span> for Corporate lawyer jobs. The average London Corporate lawyer salary is 107.8% <span class='marker'>______ than</span> the average salary across London.",
+    trans: "Середня зарплата корпоративного юриста в Лондоні становить £92,577. Це на 29.8% більше, ніж середня зарплата по країні, та на 107.8% більше за середню зарплату по всьому Лондону.",
+    clue: "Corporate lawyer salary, average national salary, 107.8% more than",
+    expl: "Salary (заробітна плата), average (середній показник), more than (більше ніж).",
+    options: [
+      "more - salary - averaged",
+      "average - more - salary",
+      "salary - more - averaged",
+      "salary - average - more"
+    ],
+    correct: "salary - average - more"
+  },
+  {
+    q: "Commercial law is a secure legal sector that continues to <span class='marker'>______ and expands</span> with our economy. Studying commercial law will not only help with <span class='marker'>______ skills</span>, attention to detail and client liaison but will also give you the skills you need to stand <span class='marker'>______ with industry news</span> and the economic changes",
+    trans: "Комерційне право - це стабільний сектор, який процвітає і розширюється. Навчання допоможе розвинути дослідницькі навички та бути в курсі останніх новин галузі.",
+    clue: "continues to thrive, research skills, stand up-to-date with",
+    expl: "To thrive (процвітати), research skills (навички досліджень), stand up-to-date (бути обізнаним із новинами).",
+    options: [
+      "thrive - research - up-to-date",
+      "up-to-date - thrive - research",
+      "research - up-to-date - thrive",
+      "thrive - up-to-date - research"
+    ],
+    correct: "thrive - research - up-to-date"
+  },
+  {
+    q: "Branches of commercial law <span class='marker'>______ with business</span> and financial transactions. They mainly include contract law, property law, corporate law, <span class='marker'>______ property law</span>, tax law, negotiable instrument law, and uniform commercial <span class='marker'>______</span>",
+    trans: "Галузі комерційного права мають справу з бізнес-угодами. Вони включають право власності, право інтелектуальної власності, податкове право та Єдиний торговельний кодекс.",
+    clue: "deal with business, intellectual property law, uniform commercial code",
+    expl: "Deal with (працювати з/мати справу), intellectual property (інтелектуальна власність), commercial code (торговельний кодекс).",
+    options: [
+      "code - deal - intellectuality",
+      "intellectual - code - dealings",
+      "deal - code - intellectuality",
+      "deal - intellectual - code"
+    ],
+    correct: "deal - intellectual - code"
+  },
+  {
+    q: "Corporate law (also known as business law or enterprise law or sometimes company law) is the body of law governing the <span class='marker'>______ relations</span>, and conduct of <span class='marker'>______ , companies</span>, organizations and businesses. The term refers to the legal practice of law relating to <span class='marker'>______ or to the theory of corporations</span>",
+    trans: "Корпоративне право регулює права, відносини та поведінку осіб, компаній та організацій. Термін стосується юридичної практики щодо корпорацій або теорії корпорацій.",
+    clue: "governing the rights, relations; conduct of persons, companies; relating to corporations",
+    expl: "Rights (права), persons (особи/фізичні особи), corporations (корпорації/юридичні особи).",
+    options: [
+      "corporations - rights - persons",
+      "rights - persons - corporations",
+      "rights - corporations - persons",
+      "persons - corporations - rights"
+    ],
+    correct: "rights - persons - corporations"
+  },
+  {
+    q: "Commercial law is a body of law that <span class='marker'>______ the conduct</span> of persons, merchants, and businesses who are <span class='marker'>______ in trade</span>, sales, and commerce. Also known as business law, it is a broad area of law that interacts with many other <span class='marker'>______ of laws</span> such as environmental regulation, real estate, and food/safety laws.",
+    trans: "Комерційне право регулює діяльність осіб та фірм, які зайняті в торгівлі та збуті. Воно взаємодіє з багатьма іншими сферами права, такими як екологічне право чи нерухомість.",
+    clue: "regulates the conduct, engaged in trade, other areas of laws",
+    expl: "Regulates (регулює), engaged (задіяні у чомусь), areas of laws (галузі/напрямки права).",
+    options: [
+      "engaged - areas - regulates",
+      "regulates - areas - engagements",
+      "regulates - engaged - areas",
+      "areas - regulates - engagements"
+    ],
+    correct: "regulates - engaged - areas"
+  },
+  {
+    q: "Many of these categories fall within Financial law, an aspect of Commercial law <span class='marker'>______ specifically to financing</span> and the financial markets. It can also be understood to regulate corporate contracts, <span class='marker'>______ practices</span>, and the manufacture and sales of consumer goods. Many countries have adopted <span class='marker'>______ that contain comprehensive</span> statements of their commercial law.",
+    trans: "Багато з цих категорій належать до фінансового права, що стосується фінансування та ринків. Воно також регулює контракти, практику найму та цивільні кодекси багатьох країн.",
+    clue: "pertaining specifically to, hiring practices, adopted civil codes",
+    expl: "Pertaining to (що має стосунок до), hiring practices (практика прийому на роботу), civil codes (цивільні кодекси).",
+    options: [
+      "hiring - civil codes - pertainings",
+      "pertaining - hiring - civil codes",
+      "civil codes - pertaining - hirings",
+      "pertaining - civil codes - hirings"
+    ],
+    correct: "pertaining - hiring - civil codes"
+  },
+  {
+    q: "A law degree is not easy in that it requires a <span class='marker'>______ amount of hard</span> and dedicated work. But, intellectually, it is not that difficult if you are <span class='marker'>______ intelligent</span> (which you presumably are if you've been admitted to law school) and you put in the <span class='marker'>______ work</span>.",
+    trans: "Юридична освіта непроста, оскільки вимагає величезного обсягу важкої праці. Але інтелектуально вона не така складна, якщо ви достатньо розумні і докладаєте необхідних зусиль.",
+    clue: "tremendous amount, reasonably intelligent, requisite work",
+    expl: "Tremendous (величезний), reasonably (достатньо/розумно), requisite (необхідний за вимогами).",
+    options: [
+      "requisite - tremendously - reasonably",
+      "tremendous - reasonably - requisite",
+      "reasonably - requisite - tremendous",
+      "tremendous - requisitely - reasonably"
+    ],
+    correct: "tremendous - reasonably - requisite"
+  },
+  {
+    q: "Commercial law, also known as mercantile law or <span class='marker'>______ law</span>, is the body of law that applies to the rights, relations, and conduct of persons and businesses engaged in commerce, <span class='marker'>______ trade</span>, and sales. It is often considered to be a <span class='marker'>______ of civil law</span> and deals with issues of both private law and public law.",
+    trans: "Комерційне право, також відоме як торгове право, регулює діяльність суб'єктів у торгівлі та збуті. Його вважають галуззю цивільного права.",
+    clue: "trade law, merchandising trade, branch of civil law",
+    expl: "Trade law (торгове право), merchandising (торговельний/товарний обіг), branch (галузь/відгалуження права).",
+    options: [
+      "trade - merchandising - branch",
+      "merchandising - branch - trade",
+      "trade - branch - merchandising",
+      "branch - trade - merchandisiment"
+    ],
+    correct: "trade - merchandising - branch"
+  },
+  {
+    q: "Commercial law focuses on the sale and <span class='marker'>______ of goods</span>, as well as the financing of certain transactions. Business law focuses on the other <span class='marker'>______ of business</span>, including forming a company, mergers and acquisitions, <span class='marker'>______ rights</span>, and property issues such as leasing office or warehouse space.",
+    trans: "Комерційне право зосереджується на продажу та дистрибуції товарів. Бізнес-право фокусується на інших аспектах бізнесу, включаючи права акціонерів та злиття підприємств.",
+    clue: "distribution of goods, other aspects of business, shareholder rights",
+    expl: "Distribution (розподіл/збут товарів), aspects (аспекти), shareholder (акціонерний).",
+    options: [
+      "aspects - shareholders - distributions",
+      "distribution - aspects - shareholder",
+      "shareholder - distributions - aspects",
+      "distribution - shareholders - aspects"
+    ],
+    correct: "distribution - aspects - shareholder"
+  },
+  {
+    q: "Any serious exposition of commercial law, however, will include such topics as the sale of goods, <span class='marker'>_________________ and carriage</span> of goods, documents of title and <span class='marker'>____________ instruments</span>, banking, the various forms of <span class='marker'>________________ credit</span>, and BANKRUPTCY law",
+    trans: "Будь-який серйозний виклад комерційного права включає продаж товарів, відповідальне зберігання та перевезення, оборотні документи, банківську справу та забезпечений кредит.",
+    clue: "bailment and carriage, negotiable instruments, secured credit",
+    expl: "Bailment (відповідальне тимчасове зберігання майна), negotiable instruments (оборотні цінні папери), secured credit (кредит під заставу/забезпечений).",
+    options: [
+      "bailment - negotiable - secured",
+      "secured - bailment - negotiable",
+      "bailment - secured - negotiable",
+      "negotiable - secured - bailmented"
+    ],
+    correct: "bailment - negotiable - secured"
+  },
+  {
+    q: "Commercial law involves <span class='marker'>______ problems</span> that can occur in the running of businesses and commercial transactions. Its <span class='marker'>______ concerns</span> are contract and tort law. Clients that come to commercial law firms include large businesses, governments, banks, <span class='marker'>______ companies</span> and more.",
+    trans: "Комерційне право займається правовими проблемами під час ведення бізнесу. Його провідними сферами є контрактне та деліктне право. Клієнтами є банки, страхові компанії тощо.",
+    clue: "legal problems, predominant concerns, insurance companies",
+    expl: "Legal (юридичні), predominant (панівні/основні), insurance (страхові).",
+    options: [
+      "predominant - insurance - legality",
+      "insuranced - legal - predominance",
+      "legal - insurance - predominance",
+      "legal - predominant - insurance"
+    ],
+    correct: "legal - predominant - insurance"
+  },
+  {
+    q: "Deadlines, billing pressures, client demands, long hours, changing laws, and other <span class='marker'>______</span> all combine to make the <span class='marker'>______ of law</span> one of the most stressful jobs out there. Throw in rising business pressures, evolving technologies, and climbing law school debt and it's no wonder <span class='marker'>______ lawyers</span> are stressed",
+    trans: "Дедлайни, тиск рахунків, вимоги клієнтів та інші навантаження роблять юридичну практику однією з найбільш стресових професій.",
+    clue: "other demands, practice of law, legal lawyers",
+    expl: "Demands (вимоги/навантаження), practice (практика права: practice of law), legal (юридичний).",
+    options: [
+      "practices - legal - demands",
+      "legalities - demands - practice",
+      "demands - practice - legal",
+      "demands - legal - practice"
+    ],
+    correct: "demands - practice - legal"
+  },
+  {
+    q: "Working in commercial law, you would be spending your time <span class='marker'>______ day-to-day</span> legal <span class='marker'>______ clients</span> on various <span class='marker'>______ that may arise</span> as they manage a business. Depending on the law firm, you might specialize even further in a particular practice area like capital markets or banking dispute resolution.",
+    trans: "Працюючи в комерційному праві, ви витрачатимете час на консультування щодо щоденних спорів та правових питань клієнтів, які виникають під час управління бізнесом.",
+    clue: "spending time advising, legal disputes, various issues",
+    expl: "Advising (консультування клієнтів), disputes (правові спори), issues (проблемні питання).",
+    options: [
+      "issues - disputes - advising",
+      "advising - issues - dispute",
+      "dispute - advising - issues",
+      "advising - disputes - issues"
+    ],
+    correct: "advising - disputes - issues"
+  }
+];
+
+const STORAGE_KEY = "category4_law_sequences_v2";
+
+function shuffleArray(arr) {
+  const newArr = [...arr];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
+let state = [];
+let currentIndex = 0;
+
+function loadInitialState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      state = JSON.parse(saved);
+      if (state.length === rawQuestions.length) return;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  state = rawQuestions.map((item, idx) => ({
+    id: idx,
+    q: item.q,
+    trans: item.trans,
+    clue: item.clue,
+    expl: item.expl,
+    options: shuffleArray(item.options),
+    correctStr: item.correct,
+    answered: false,
+    selectedStr: null,
+    isCorrect: false,
+    hintShown: false
+  }));
+  saveState();
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function initNavGrid() {
+  const container = document.getElementById("nav-grid");
+  container.innerHTML = "";
+  state.forEach((_, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn";
+    btn.id = `nav-btn-${idx}`;
+    btn.innerText = idx + 1;
+    btn.onclick = () => jumpToQuestion(idx);
+    container.appendChild(btn);
+  });
+}
+
+function updateNavGridAndStats() {
+  let correctCount = 0;
+  let wrongCount = 0;
+
+  state.forEach((s, idx) => {
+    const btn = document.getElementById(`nav-btn-${idx}`);
+    if (!btn) return;
+    btn.className = "nav-btn";
+    if (idx === currentIndex) btn.classList.add("active");
+    if (s.answered) {
+      if (s.isCorrect) {
+        btn.classList.add("correct");
+        correctCount++;
+      } else {
+        btn.classList.add("wrong");
+        wrongCount++;
+      }
+    }
+  });
+
+  const leftCount = state.length - (correctCount + wrongCount);
+  document.getElementById("stat-correct").innerText = correctCount;
+  document.getElementById("stat-wrong").innerText = wrongCount;
+  document.getElementById("stat-left").innerText = leftCount;
+  document.getElementById("score-counter").innerText = `Правильно: ${correctCount}`;
+}
+
+function loadQuestion(idx) {
+  currentIndex = idx;
+  const item = state[currentIndex];
+
+  document.getElementById("q-counter").innerText = `Питання ${currentIndex + 1} / ${state.length}`;
+  document.getElementById("progress").style.width = `${((currentIndex + 1) / state.length) * 100}%`;
+
+  const qBox = document.getElementById("q-box");
+  qBox.innerHTML = item.q;
+  if (item.answered || item.hintShown) {
+    qBox.classList.add("show-markers");
+  } else {
+    qBox.classList.remove("show-markers");
+  }
+
+  const container = document.getElementById("opt-container");
+  container.innerHTML = "";
+
+  item.options.forEach((optStr) => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.innerText = optStr;
+
+    if (item.answered) {
+      btn.disabled = true;
+      if (optStr === item.correctStr) btn.classList.add("correct");
+      if (optStr === item.selectedStr && !item.isCorrect) btn.classList.add("wrong");
+    } else {
+      btn.onclick = () => selectAnswer(optStr);
+    }
+    container.appendChild(btn);
+  });
+
+  const reviewBox = document.getElementById("review-box");
+  if (item.answered) {
+    document.getElementById("trans-text").innerText = item.trans;
+    document.getElementById("clue-text").innerText = item.clue;
+    document.getElementById("expl-text").innerText = item.expl;
+    reviewBox.className = "review-box " + (item.isCorrect ? "correct-border" : "wrong-border");
+    reviewBox.style.display = "block";
+  } else {
+    reviewBox.style.display = "none";
+  }
+
+  document.getElementById("prev-btn").disabled = (currentIndex === 0);
+  document.getElementById("next-btn").disabled = (currentIndex === state.length - 1);
+  updateNavGridAndStats();
+}
+
+function selectAnswer(optStr) {
+  const item = state[currentIndex];
+  item.answered = true;
+  item.selectedStr = optStr;
+  item.isCorrect = (optStr === item.correctStr);
+
+  saveState();
+  loadQuestion(currentIndex);
+}
+
+function toggleHint() {
+  state[currentIndex].hintShown = true;
+  saveState();
+  document.getElementById("q-box").classList.add("show-markers");
+}
+
+function prevQuestion() {
+  if (currentIndex > 0) loadQuestion(currentIndex - 1);
+}
+
+function nextQuestion() {
+  if (currentIndex < state.length - 1) loadQuestion(currentIndex + 1);
+}
+
+function jumpToQuestion(idx) {
+  loadQuestion(idx);
+}
+
+function confirmReset() {
+  if (confirm("Ви дійсно хочете скинути всі відповіді, лічильники та заново перемішати варіанти?")) {
+    localStorage.removeItem(STORAGE_KEY);
+    loadInitialState();
+    initNavGrid();
+    loadQuestion(0);
+  }
+}
+
+loadInitialState();
+initNavGrid();
+loadQuestion(0);
+</script>
+</body>
+</html>
