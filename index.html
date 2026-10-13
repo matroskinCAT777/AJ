@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- PWA & Mobile Settings -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Тести">
+  <link rel="apple-touch-icon" href="icon.svg">
+  
+  <title>Підготовка до іспиту</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b1120;
+      color: #f8fafc;
+      margin: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 650px;
+      width: 100%;
+      padding-bottom: 30px;
+    }
+    .header-card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+      border: 1px solid #334155;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 6px 0;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #94a3b8;
+      margin: 0 0 16px 0;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #1e293b;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .c-green { color: #4ade80; }
+    .c-red { color: #f87171; }
+    .c-blue { color: #38bdf8; }
+
+    .category-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .cat-card {
+      background: #1e293b;
+      border-radius: 14px;
+      padding: 16px 18px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      border: 1px solid #334155;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: all 0.2s;
+    }
+    .cat-card:active {
+      transform: scale(0.98);
+      background: #27354f;
+    }
+    .cat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .cat-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #334155;
+      color: #93c5fd;
+      text-transform: uppercase;
+    }
+    .cat-count {
+      font-size: 13px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .cat-title {
+      font-size: 16.5px;
+      font-weight: 600;
+      color: #f8fafc;
+      margin: 0 0 6px 0;
+    }
+    .cat-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: #0f172a;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #3b82f6;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .cat-status {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header-card">
+    <div class="title">База питань: Підготовка до іспиту</div>
+    <div class="subtitle">Усі матеріали розбиті на 5 категорій. Прогрес зберігається локально.</div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-num c-blue" id="total-answered">0 / 163</div>
+        <div class="stat-label">Пройдено</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num c-green" id="total-correct">0</div>
+        <div class="stat-label">Правильно</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num c-red" id="total-wrong">0</div>
+        <div class="stat-label">Помилок</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-list">
+    <a href="category1_v2.html" class="cat-card">
+      <div class="cat-header">
+        <span class="cat-badge">Категорія 1</span>
+        <span class="cat-count">52 питання</span>
+      </div>
+      <div class="cat-title">Термінологічні дефініції</div>
+      <div class="cat-desc">Визначення термінів з податків, фінансів, економіки та ринкових стратегій.</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="p-bar-1"></div></div>
+      <div class="cat-status"><span id="p-txt-1">Не розпочато</span><span id="p-score-1">0%</span></div>
+    </a>
+
+    <a href="category2_v2.html" class="cat-card">
+      <div class="cat-header">
+        <span class="cat-badge">Категорія 2</span>
+        <span class="cat-count">47 питань</span>
+      </div>
+      <div class="cat-title">Граматика та колокації</div>
+      <div class="cat-desc">Інверсія, question tags, фразові дієслова та стійкі вирази менеджменту.</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="p-bar-2"></div></div>
+      <div class="cat-status"><span id="p-txt-2">Не розпочато</span><span id="p-score-2">0%</span></div>
+    </a>
+
+    <a href="category3_v2.html" class="cat-card">
+      <div class="cat-header">
+        <span class="cat-badge">Категорія 3</span>
+        <span class="cat-count">27 питань</span>
+      </div>
+      <div class="cat-title">Макроекономічні описи</div>
+      <div class="cat-desc">Великі контекстні параграфи: GDP, GNP, CPI, платіжний баланс, регулювання.</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="p-bar-3"></div></div>
+      <div class="cat-status"><span id="p-txt-3">Не розпочато</span><span id="p-score-3">0%</span></div>
+    </a>
+
+    <a href="category4_v2.html" class="cat-card">
+      <div class="cat-header">
+        <span class="cat-badge">Категорія 4</span>
+        <span class="cat-count">19 питань</span>
+      </div>
+      <div class="cat-title">Послідовність слів у праві</div>
+      <div class="cat-desc">Комерційне та корпоративне право: ланцюжки з 3 слів через дефіс для заповнення пропусків.</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="p-bar-4"></div></div>
+      <div class="cat-status"><span id="p-txt-4">Не розпочато</span><span id="p-score-4">0%</span></div>
+    </a>
+
+    <a href="category5_v2.html" class="cat-card">
+      <div class="cat-header">
+        <span class="cat-badge">Категорія 5</span>
+        <span class="cat-count">18 питань</span>
+      </div>
+      <div class="cat-title">Управлінські кейси та контроль</div>
+      <div class="cat-desc">Кризовий менеджмент, вирішення конфліктів, структура капіталу та форми контролю.</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="p-bar-5"></div></div>
+      <div class="cat-status"><span id="p-txt-5">Не розпочато</span><span id="p-score-5">0%</span></div>
+    </a>
+  </div>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => {
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}
+
+const configs = [
+  { id: 1, key: "category1_definitions_v2", total: 52 },
+  { id: 2, key: "category2_grammar_v2", total: 47 },
+  { id: 3, key: "category3_macro_v2", total: 27 },
+  { id: 4, key: "category4_law_sequences_v2", total: 19 },
+  { id: 5, key: "category5_cases_v2", total: 18 }
+];
+
+function updateGlobalStats() {
+  let totalAns = 0;
+  let totalCorr = 0;
+  let totalWr = 0;
+
+  configs.forEach(cfg => {
+    let raw = localStorage.getItem(cfg.key);
+    let answered = 0;
+    let correct = 0;
+    let wrong = 0;
+
+    if (raw) {
+      try {
+        let list = JSON.parse(raw);
+        list.forEach(item => {
+          if (item.answered) {
+            answered++;
+            if (item.isCorrect) correct++;
+            else wrong++;
+          }
+        });
+      } catch(e) {}
+    }
+
+    totalAns += answered;
+    totalCorr += correct;
+    totalWr += wrong;
+
+    const percent = Math.round((answered / cfg.total) * 100);
+    const fillEl = document.getElementById(`p-bar-${cfg.id}`);
+    const txtEl = document.getElementById(`p-txt-${cfg.id}`);
+    const scoreEl = document.getElementById(`p-score-${cfg.id}`);
+
+    if (fillEl) fillEl.style.width = percent + "%";
+    if (scoreEl) scoreEl.innerText = percent + "%";
+    if (txtEl) {
+      if (answered === 0) {
+        txtEl.innerText = "Не розпочато";
+      } else if (answered === cfg.total) {
+        txtEl.innerText = `Пройдено (${correct}/${cfg.total})`;
+        if (fillEl) fillEl.style.background = "#22c55e";
+      } else {
+        txtEl.innerText = `У процесі: ${answered} з ${cfg.total}`;
+      }
+    }
+  });
+
+  document.getElementById("total-answered").innerText = `${totalAns} / 163`;
+  document.getElementById("total-correct").innerText = totalCorr;
+  document.getElementById("total-wrong").innerText = totalWr;
+}
+
+window.addEventListener("DOMContentLoaded", updateGlobalStats);
+window.addEventListener("pageshow", updateGlobalStats);
+</script>
+</body>
+</html>
